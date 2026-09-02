@@ -272,3 +272,25 @@ export const FOOTPRINT = [
   ...ENVELOPE,
   ...CORRIDORS.map((c) => grow(c.rect, COLLAR)),
 ]
+
+// --- Seasonal state -------------------------------------------------------
+//
+// A late-90s mall was a seasonal machine. The directory's own "Temporary
+// Tenants" list is the hook: those four carts came and went with the calendar.
+// Pick with ?season=christmas etc.
+export const TEMP_TENANTS = [
+  { name: "Dippin' Dots",   at: [742, 630], seasons: ['summer', 'backToSchool'] },
+  { name: 'Railroad Bazaar', at: [700, 630], seasons: ['summer', 'christmas'] },
+  { name: 'Silver Tree',     at: [852, 630], seasons: ['christmas'] },
+  { name: 'Snows Gifts',     at: [900, 630], seasons: ['christmas'] },
+  { name: 'Calendar Club',   at: [852, 630], seasons: ['backToSchool'] },
+]
+
+export const SEASONS = ['summer', 'backToSchool', 'christmas']
+
+// Where the you-are-here directories stand.
+export const DIRECTORY_BOARDS = [
+  { at: [640, 636], rotY: Math.PI },        // fountain court, facing the concourse
+  { at: [1000, 620], rotY: 0 },             // Castner Knott end
+  { at: [592, 400], rotY: Math.PI / 2 },    // Sears wing
+]

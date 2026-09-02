@@ -3,12 +3,16 @@ import * as THREE from 'three'
 import { VoxelWorld } from './engine/VoxelWorld.js'
 import { Brush } from './engine/Brush.js'
 import { meshChunk } from './engine/greedyMesher.js'
-import { palette, SKY_HEX } from './engine/palette.js'
+import { LightGrid } from './engine/LightGrid.js'
+import { C, palette, SKY_HEX } from './engine/palette.js'
 import { VOXEL } from './game/config.js'
 import { buildMall } from './game/buildMall.js'
 import { Player, Input } from './game/Player.js'
 import { MergedInput, TouchControls, isTouchDevice } from './game/TouchControls.js'
-import { ANCHORS, BAYS, CORRIDORS, KIOSKS, RESTROOMS, SPAWN } from './game/plan.js'
+import { ANCHORS, BAYS, CORRIDORS, FOUNTAIN, KIOSKS, RESTROOMS, SPAWN } from './game/plan.js'
+import { drawDirectory, markYouAreHere } from './game/directoryMap.js'
+import { MallAudio } from './game/audio.js'
+import { SEASON_LABEL } from './game/season.js'
 
 // --- Scene ----------------------------------------------------------------
 
@@ -42,26 +46,44 @@ const loading = document.getElementById('loading')
 const startBtn = document.getElementById('start')
 const overlay = document.getElementById('overlay')
 
+document.querySelector('.eyebrow').textContent = `Decatur, Alabama \u00b7 ${SEASON_LABEL}`
+
 requestAnimationFrame(() => {
   const t0 = performance.now()
-  const { signs } = buildMall(world, brush)
+  const { signs, boards } = buildMall(world, brush)
   const tBuild = performance.now() - t0
 
   const t1 = performance.now()
-  const stats = meshWorld()
-  const tMesh = performance.now() - t1
+  const light = new LightGrid(world, {
+    voxelSize: VOXEL,
+    cell: 1.0,
+    ambient: 0.24,
+    emitters: {
+      [C.ceilingLight]: [1.30, 1.22, 1.02],   // lit ceiling soffits
+      [C.skylight]:     [1.15, 1.30, 1.55],   // daylight over the court
+      [C.ceiling]:      [0.62, 0.59, 0.53],   // suspended ceilings, in and out
+      [C.ceilingCove]:  [0.95, 0.90, 0.78],
+      [C.signLight]:    [0.35, 0.33, 0.28],
+    },
+  }).build()
+  const tLight = performance.now() - t1
+
+  const t2 = performance.now()
+  const stats = meshWorld(light)
+  const tMesh = performance.now() - t2
 
   signs.forEach(addSign)
+  boards.forEach(addDirectoryBoard)
 
   loading.textContent =
     `${stats.tris.toLocaleString()} triangles · ${stats.meshes} sectors · ` +
-    `built in ${Math.round(tBuild)} ms, meshed in ${Math.round(tMesh)} ms`
+    `built ${Math.round(tBuild)} ms · lit ${Math.round(tLight)} ms · meshed ${Math.round(tMesh)} ms`
   startBtn.disabled = false
 })
 
 // Chunks are merged into 3x3 sectors: enough meshes for useful frustum
 // culling, few enough to keep draw calls sane.
-function meshWorld() {
+function meshWorld(light) {
   const material = new THREE.MeshBasicMaterial({ vertexColors: true })
   const sectors = new Map()
 
@@ -69,7 +91,7 @@ function meshWorld() {
     const key = `${Math.floor(chunk.cx / 3)},${Math.floor(chunk.cz / 3)}`
     let out = sectors.get(key)
     if (!out) sectors.set(key, (out = { positions: [], colors: [], indices: [] }))
-    meshChunk(world, chunk, palette, VOXEL, out)
+    meshChunk(world, chunk, palette, VOXEL, out, { light, maxRun: 8 })
   }
 
   let tris = 0
@@ -102,7 +124,7 @@ function addSign(s) {
   canvas.height = 110
   const ctx = canvas.getContext('2d')
   ctx.font = font
-  ctx.fillStyle = '#f4efe2'
+  ctx.fillStyle = s.ink ?? '#f4efe2'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillText(s.text, canvas.width / 2, canvas.height / 2 + 2)
@@ -113,7 +135,7 @@ function addSign(s) {
   texture.anisotropy = 4
 
   const ratio = canvas.width / canvas.height
-  let h = 0.62
+  let h = s.blade ? 0.3 : 0.62
   let w = h * ratio
   if (w > s.width) { w = s.width; h = w / ratio }
 
@@ -123,6 +145,32 @@ function addSign(s) {
   )
   mesh.position.set(s.x, s.y, s.z)
   mesh.rotation.y = s.rotY
+  scene.add(mesh)
+}
+
+// --- You-are-here directories --------------------------------------------
+
+function addDirectoryBoard(b) {
+  const map = drawDirectory(3.1)
+  markYouAreHere(map, b.x, b.z)
+
+  const texture = new THREE.CanvasTexture(map.canvas)
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.minFilter = THREE.LinearMipmapLinearFilter
+  texture.anisotropy = 8
+
+  const ratio = map.canvas.width / map.canvas.height
+  let w = b.width
+  let h = w / ratio
+  if (h > b.height) { h = b.height; w = h * ratio }
+
+  const mesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(w, h),
+    new THREE.MeshBasicMaterial({ map: texture })
+  )
+  const out = b.depth + 0.07
+  mesh.position.set(b.x + Math.sin(b.rotY) * out, b.y, b.z + Math.cos(b.rotY) * out)
+  mesh.rotation.y = b.rotY
   scene.add(mesh)
 }
 
@@ -159,6 +207,7 @@ function locate(x, z) {
 const readoutZone = document.getElementById('readout-zone')
 const readoutStore = document.getElementById('readout-store')
 let lastZone = ''
+let lastStep = 0
 
 // --- Loop -----------------------------------------------------------------
 
@@ -188,10 +237,31 @@ function setLocked(on) {
 }
 setLocked(false)
 
+const audio = new MallAudio()
+const CAMELOT = BAYS.find((b) => b.id === 164)
+const MUZAK_AT = [(CAMELOT.x0 + CAMELOT.x1) / 2, (CAMELOT.z0 + CAMELOT.z1) / 2]
+const FOUNTAIN_AT = [FOUNTAIN.x, FOUNTAIN.z]
+
 startBtn.addEventListener('click', () => {
   setWalking(true)
+  audio.start()
   if (!TOUCH) canvas.requestPointerLock?.()
 })
+
+let muted = false
+const muteBtn = document.createElement('button')
+muteBtn.id = 'btn-mute'
+muteBtn.textContent = 'SOUND'
+muteBtn.title = 'Mute (M)'
+const setMuted = (m) => {
+  muted = m
+  audio.setMuted(m)
+  muteBtn.classList.toggle('off', m)
+  muteBtn.textContent = m ? 'MUTED' : 'SOUND'
+}
+muteBtn.addEventListener('pointerdown', (e) => { e.stopPropagation(); setMuted(!muted) })
+document.body.appendChild(muteBtn)
+addEventListener('keydown', (e) => { if (e.code === 'KeyM') setMuted(!muted) })
 
 const pause = document.createElement('button')
 pause.id = 'btn-pause'
@@ -234,6 +304,20 @@ renderer.setAnimationLoop(() => {
   if (walking) player.update(dt, input)
 
   const here = locate(player.pos.x, player.pos.z)
+
+  if (walking) {
+    // Bigger rooms get a longer tail; a shop interior is nearly dry.
+    const openness = here.zone === 'Center Court' ? 1
+      : CORRIDOR_ZONES.includes(here) ? 0.55 : 0.15
+    audio.update(player.pos.x, player.pos.z,
+      { fountain: FOUNTAIN_AT, muzak: MUZAK_AT, openness })
+
+    const phase = Math.floor((player.bob * 2) / Math.PI)
+    if (phase !== lastStep && player.onGround) {
+      lastStep = phase
+      audio.step(!CORRIDOR_ZONES.includes(here))
+    }
+  }
   const key = here.zone + here.label
   if (key !== lastZone) {
     lastZone = key
@@ -245,4 +329,4 @@ renderer.setAnimationLoop(() => {
 })
 
 // Handy while tuning the plan.
-window.mall = { world, player, scene, locate }
+window.mall = { world, player, scene, locate, audio }

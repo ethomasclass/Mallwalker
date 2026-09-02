@@ -45,7 +45,11 @@ function padChunk(world, chunk, buf) {
   return buf
 }
 
-export function meshChunk(world, chunk, palette, voxelSize, out) {
+// `light` is an optional LightGrid. When present, quads are capped at
+// `maxRun` voxels so each one has enough vertices to carry a light gradient,
+// and every vertex is shaded by a trilinear sample taken just off its face.
+export function meshChunk(world, chunk, palette, voxelSize, out, { light = null, maxRun = 0 } = {}) {
+  const lit = [0, 0, 0]
   const pad = padChunk(world, chunk, meshChunk._pad || (meshChunk._pad = new Uint16Array(P * P * P)))
   const at = (x, y, z) => pad[(x + 1) + (y + 1) * P + (z + 1) * P * P]
 
@@ -78,11 +82,13 @@ export function meshChunk(world, chunk, palette, voxelSize, out) {
           const c = mask[n]
           if (c === 0) { i++; n++; continue }
 
+          const cap = maxRun || S
+
           let w = 1
-          while (i + w < S && mask[n + w] === c) w++
+          while (i + w < S && w < cap && mask[n + w] === c) w++
 
           let h = 1
-          grow: while (j + h < S) {
+          grow: while (j + h < S && h < cap) {
             for (let k = 0; k < w; k++) if (mask[n + k + h * S] !== c) break grow
             h++
           }
@@ -103,13 +109,28 @@ export function meshChunk(world, chunk, palette, voxelSize, out) {
           const pz = (x[2] + bz) * voxelSize
           const sx = voxelSize
 
-          positions.push(
-            px, py, pz,
-            px + du[0] * sx, py + du[1] * sx, pz + du[2] * sx,
-            px + (du[0] + dv[0]) * sx, py + (du[1] + dv[1]) * sx, pz + (du[2] + dv[2]) * sx,
-            px + dv[0] * sx, py + dv[1] * sx, pz + dv[2] * sx,
-          )
-          for (let k = 0; k < 4; k++) colors.push(r, g, b2)
+          const corners = [
+            [px, py, pz],
+            [px + du[0] * sx, py + du[1] * sx, pz + du[2] * sx],
+            [px + (du[0] + dv[0]) * sx, py + (du[1] + dv[1]) * sx, pz + (du[2] + dv[2]) * sx],
+            [px + dv[0] * sx, py + dv[1] * sx, pz + dv[2] * sx],
+          ]
+          for (const p of corners) positions.push(p[0], p[1], p[2])
+
+          if (light) {
+            // Sample just off the face, so the reading comes from the air the
+            // face looks into rather than from the solid behind it.
+            const off = light.cell * 0.55
+            const nx = d === 0 ? (positive ? off : -off) : 0
+            const ny = d === 1 ? (positive ? off : -off) : 0
+            const nz = d === 2 ? (positive ? off : -off) : 0
+            for (const p of corners) {
+              light.sample(p[0] + nx, p[1] + ny, p[2] + nz, lit)
+              colors.push(r * lit[0], g * lit[1], b2 * lit[2])
+            }
+          } else {
+            for (let k = 0; k < 4; k++) colors.push(r, g, b2)
+          }
 
           if (positive) indices.push(base, base + 1, base + 2, base, base + 2, base + 3)
           else indices.push(base, base + 2, base + 1, base, base + 3, base + 2)

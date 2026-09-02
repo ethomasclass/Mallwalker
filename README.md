@@ -46,6 +46,35 @@ Interior detail — mauve-and-cream diamond tile, coved and lit ceiling soffits,
 speckled granite columns, the skylit fountain court with its brass pots of
 bromeliads — is drawn from period photography of the centre court.
 
+**Every tenant has its own storefront.** `src/game/tenants.js` gives all 52
+named spaces a closure type and a pair of house colours: KayBee's loudest
+colour sits right at the lease line with stock stacked in the opening, because
+that is exactly why the format existed; Camelot sits behind a dark display
+window; Sbarro's has no glazing at all, just a tiled counter; AmSouth is a
+solid front with one door and one window; the 23 vacancies are papered over
+from inside and gated, with a SPACE AVAILABLE card. There is no logo artwork
+anywhere — only the tenant's name, set plain.
+
+Storefront dimensions follow real mall tenant design criteria: the lease line
+sits 22″ back from the face of the landlord's neutral pier, and blade signs
+project 24″ with their underside 9′-0″ clear.
+
+**Light is baked.** `src/engine/LightGrid.js` treats the lit ceiling soffits,
+the court skylight and the shops' own ceilings as emitters and floods that
+light through open space on a 1 m grid; meshing samples it per vertex. Solid
+cells hold no light, so creases and undersides shade themselves — ambient
+occlusion falls out of the same pass. Nothing is lit at runtime.
+
+**Sound is synthesised**, so the whole mall still ships as one file: an HVAC
+bed, the fountain when you are near it, muzak leaking out of Camelot, and
+footsteps in a room whose reverb opens up as the ceiling does. **M** mutes.
+
+The you-are-here directories are drawn from the same plan data the world is
+built from, so the map can never disagree with the building around it.
+
+Add `?season=christmas` (or `backToSchool`) to swap the temporary tenants the
+directory lists — Dippin' Dots, Railroad Bazaar, Silver Tree, Snows Gifts.
+
 ### Where the model departs from the map
 
 The printed directory draws corridors far narrower than a person can walk, and
@@ -108,11 +137,12 @@ Each viewpoint is `[name, x, z, yaw, pitch]` in world metres.
 
 - **NPCs.** The point of the whole thing: other walkers to pass and talk to.
   Nothing is stubbed for them yet.
-- Anchor interiors are empty shells; shop interiors are bare boxes.
-- No sound. A mall without HVAC hum and a distant food court is missing half of
-  itself.
+- Anchor interiors are empty shells, and shop interiors are a coloured rear
+  wall and not much else.
 - The exterior is a brick skin and a flat parking lot — no cars, no entrances
   from outside, no landscaping.
+- The seasonal system only swaps carts. Centre-court decoration and window
+  sale signage don't change yet.
 - Bay geometry is eyeballed from the scan to about ±1 m. Worth a second pass
   against the modern floorplan in `public/reference/floorplan-modern.jpg`,
   which covers the same building with cleaner outlines.

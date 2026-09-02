@@ -6,11 +6,13 @@
 // was cut on purpose — and the building has no leaks by construction.
 
 import { C } from '../engine/palette.js'
+import { signInk, storefront } from './tenants.js'
 import { VOXEL, WALL } from './config.js'
 import {
-  ANCHORS, BAYS, CORRIDORS, FOOTPRINT, FOUNTAIN, H, KIOSK_SIZE, KIOSKS, mx, mz,
-  OUTPARCELS, RESTROOMS,
+  ANCHORS, BAYS, CORRIDORS, DIRECTORY_BOARDS, FOOTPRINT, FOUNTAIN, H, KIOSK_SIZE,
+  KIOSKS, mx, mz, OUTPARCELS, RESTROOMS, TEMP_TENANTS,
 } from './plan.js'
+import { SEASON } from './season.js'
 
 const ANCHOR_ROOF = 8.6
 const HEAD = H.storefrontHead
@@ -18,6 +20,7 @@ const SIGN_H = 0.85
 
 export function buildMall(world, brush) {
   const signs = []
+  const boards = []
 
   fillEnvelope(brush)
   carveCorridors(brush)
@@ -29,10 +32,55 @@ export function buildMall(world, brush) {
   concourseFurniture(brush)
   fountainCourt(brush)
   KIOSKS.forEach((k) => kiosk(brush, k, signs))
+  temporaryTenants(brush, signs)
+  DIRECTORY_BOARDS.forEach((b) => directoryBoard(brush, b, boards))
   exteriorSkin(world, brush)
   OUTPARCELS.forEach((o) => outparcel(brush, o, signs))
 
-  return { signs }
+  return { signs, boards }
+}
+
+// --- Temporary tenants ----------------------------------------------------
+//
+// The four carts the directory lists under "Temporary Tenants", present or
+// absent according to the season.
+
+function temporaryTenants(brush, signs) {
+  for (const t of TEMP_TENANTS) {
+    if (!t.seasons.includes(SEASON)) continue
+    const x = mx(t.at[0])
+    const z = mz(t.at[1])
+    const w = 1.15, d = 0.7
+    brush.box(x - w, 0.18, z - d, x + w, 0.95, z + d, C.kioskWood)
+    brush.box(x - w - 0.1, 0.95, z - d - 0.1, x + w + 0.1, 1.1, z + d + 0.1, C.counterTile)
+    for (const sx of [-1, 1]) {
+      for (const sz of [-1, 1]) {
+        brush.box(x + sx * (w - 0.15), 0, z + sz * (d - 0.12),
+                  x + sx * (w - 0.15) + 0.12, 0.2, z + sz * (d - 0.12) + 0.12, C.storefrontDark)
+        brush.box(x + sx * (w - 0.15), 1.1, z + sz * (d - 0.12),
+                  x + sx * (w - 0.15) + 0.12, 2.15, z + sz * (d - 0.12) + 0.12, C.storefrontDark)
+      }
+    }
+    brush.box(x - w - 0.2, 2.15, z - d - 0.15, x + w + 0.2, 2.5, z + d + 0.15, C.signBoard)
+    signs.push({ text: t.name, x, y: 2.32, z: z + d + 0.22, rotY: 0, width: w * 1.9 })
+    signs.push({ text: t.name, x, y: 2.32, z: z - d - 0.22, rotY: Math.PI, width: w * 1.9 })
+  }
+}
+
+// --- You-are-here directories ---------------------------------------------
+
+function directoryBoard(brush, b, boards) {
+  const x = mx(b.at[0])
+  const z = mz(b.at[1])
+  const c = Math.cos(b.rotY), s2 = Math.sin(b.rotY)
+  // Board faces +Z when rotY is 0; thickness runs along the facing axis.
+  const hw = 1.05, ht = 0.09
+  const [ex, ez] = [Math.abs(c) * hw + Math.abs(s2) * ht, Math.abs(s2) * hw + Math.abs(c) * ht]
+  brush.box(x - 0.28, 0, z - 0.28, x + 0.28, 0.16, z + 0.28, C.columnBase)
+  brush.box(x - 0.14, 0.16, z - 0.14, x + 0.14, 1.05, z + 0.14, C.storefrontDark)
+  brush.box(x - ex, 1.0, z - ez, x + ex, 2.15, z + ez, C.storefrontDark)
+  brush.box(x - ex - 0.06, 2.15, z - ez - 0.06, x + ex + 0.06, 2.34, z + ez + 0.06, C.brass)
+  boards.push({ x, y: 1.58, z, rotY: b.rotY, width: hw * 2 - 0.14, height: 1.0, depth: ez || ex })
 }
 
 // --- 1. Solid mass --------------------------------------------------------
@@ -56,78 +104,210 @@ function carveCorridors(brush) {
 }
 
 // --- 3. Shops -------------------------------------------------------------
+//
+// Dimensions follow real mall tenant design criteria: the tenant lease line
+// sits 20-22" back from the face of the landlord's neutral pier, the landlord
+// controls the first few feet inside it, and blade signs project 24" with
+// their underside 9'-0" clear.
 
-// Maps a bay's storefront face onto "along the frontage" / "through the wall"
-// axes so one piece of code can build all four orientations.
+const PIER = 0.9          // landlord neutral pier, each side of the frontage
+const LEASE = 0.55        // lease line setback from the pier face
+const CLOSURE = 0.25      // thickness of the shopfront closure itself
+const BLADE = { proj: 0.6, thick: 0.14, h: 0.42, clear: 2.75 }
+
+// Maps a bay's storefront face onto "along the frontage" / "depth into the
+// shop" axes so one piece of code builds all four orientations.
 function front(b) {
-  switch (b.face) {
-    case 'N': return { horiz: true, a0: b.x0, a1: b.x1, w0: b.z0, w1: b.z0 + WALL, out: -1 }
-    case 'S': return { horiz: true, a0: b.x0, a1: b.x1, w0: b.z1 - WALL, w1: b.z1, out: +1 }
-    case 'W': return { horiz: false, a0: b.z0, a1: b.z1, w0: b.x0, w1: b.x0 + WALL, out: -1 }
-    default:  return { horiz: false, a0: b.z0, a1: b.z1, w0: b.x1 - WALL, w1: b.x1, out: +1 }
-  }
+  const g = {
+    N: { horiz: true,  a0: b.x0, a1: b.x1, mall: b.z0,        dir: +1, out: -1 },
+    S: { horiz: true,  a0: b.x0, a1: b.x1, mall: b.z1,        dir: -1, out: +1 },
+    W: { horiz: false, a0: b.z0, a1: b.z1, mall: b.x0,        dir: +1, out: -1 },
+    E: { horiz: false, a0: b.z0, a1: b.z1, mall: b.x1,        dir: -1, out: +1 },
+  }[b.face]
+  return g
 }
 
-// box() in frontage space: (along-low, along-high, wall-low, wall-high)
-function fbox(brush, f, a0, a1, w0, w1, y0, y1, color) {
-  if (f.horiz) brush.box(a0, y0, w0, a1, y1, w1, color)
-  else brush.box(w0, y0, a0, w1, y1, a1, color)
+// A box in frontage space: along the frontage a0..a1, at depth d0..d1 measured
+// from the mall face into the shop (negative depth reaches into the concourse).
+function dbox(brush, g, a0, a1, d0, d1, y0, y1, color) {
+  const w0 = g.mall + g.dir * d0
+  const w1 = g.mall + g.dir * d1
+  if (g.horiz) brush.box(a0, y0, Math.min(w0, w1), a1, y1, Math.max(w0, w1), color)
+  else brush.box(Math.min(w0, w1), y0, a0, Math.max(w0, w1), y1, a1, color)
 }
 
 function carveShop(brush, b, signs) {
   const deep = Math.min(b.x1 - b.x0, b.z1 - b.z0)
   if (deep < 2.5) return
 
+  const sf = storefront(b)
+  const fascia = C[sf.fascia]
+  const accent = C[sf.accent]
+
   // Sales floor.
   brush.clear(b.x0 + WALL, 0, b.z0 + WALL, b.x1 - WALL, H.storeCeil, b.z1 - WALL)
   brush.slab(b.x0 + WALL, b.z0 + WALL, b.x1 - WALL, b.z1 - WALL, -0.25,
     () => (b.name ? C.storeFloor : C.storeCarpet))
-  // Suspended ceiling.
   brush.box(b.x0 + WALL, H.storeCeil, b.z0 + WALL, b.x1 - WALL, H.storeCeil + 0.25, b.z1 - WALL, C.ceiling)
 
-  const f = front(b)
-  const span = f.a1 - f.a0
-  const pier = Math.min(0.9, span * 0.14)
-  const o0 = f.a0 + pier
-  const o1 = f.a1 - pier
+  const g = front(b)
+  const span = g.a1 - g.a0
+  const pier = Math.min(PIER, span * 0.16)
+  const o0 = g.a0 + pier
+  const o1 = g.a1 - pier
   if (o1 - o0 < 1.5) return
 
-  // Cut the whole shopfront open, then glaze the outer thirds and leave the
-  // middle as the walk-in.
-  fbox(brush, f, o0, o1, f.w0 - 0.3, f.w1 + 0.3, 0, HEAD, 0)
-  const glass = (o1 - o0) * 0.3
-  for (const [g0, g1] of [[o0, o0 + glass], [o1 - glass, o1]]) {
-    fbox(brush, f, g0, g1, f.w0 + 0.125, f.w0 + 0.375, 0, HEAD, C.storefrontGlass)
-    // Kick rail along the bottom and a head rail under the fascia.
-    fbox(brush, f, g0, g1, f.w0 + 0.1, f.w0 + 0.4, 0, 0.35, C.storefrontDark)
-    fbox(brush, f, g0, g1, f.w0 + 0.1, f.w0 + 0.4, HEAD - 0.2, HEAD, C.storefrontDark)
-    // Vertical mullions roughly every 2 m.
-    const bays = Math.max(1, Math.round((g1 - g0) / 2))
+  // The rear wall carries the tenant's colour, so each shop reads as its own
+  // room when you look into it from the concourse.
+  const back = deepAxis(b, g)
+  dbox(brush, g, g.a0, g.a1, back - 0.3, back, 0, H.storeCeil, fascia)
+
+  // Neutral piers: landlord-built, identical the length of the mall.
+  dbox(brush, g, g.a0, o0, -0.02, WALL, 0, HEAD + SIGN_H, C.neutralPier)
+  dbox(brush, g, o1, g.a1, -0.02, WALL, 0, HEAD + SIGN_H, C.neutralPier)
+
+  // Cut the frontage open back to the lease line, then rebuild the closure.
+  dbox(brush, g, o0, o1, -0.35, LEASE + CLOSURE + 0.4, 0, HEAD, 0)
+  closure(brush, g, sf, o0, o1, accent, fascia)
+
+  // Reveal soffit over the recess, in the tenant's accent.
+  dbox(brush, g, o0, o1, 0, LEASE + CLOSURE, HEAD, HEAD + 0.25, accent)
+
+  // Sign fascia between the piers, with a brass reveal beneath it.
+  dbox(brush, g, o0, o1, 0, WALL, HEAD, HEAD + SIGN_H, fascia)
+  dbox(brush, g, o0, o1, 0, 0.18, HEAD - 0.14, HEAD, C.brass)
+
+  if (b.name && !sf.noSign) {
+    signs.push(sign(b.name, g, (o0 + o1) / 2, HEAD + SIGN_H / 2, -0.06,
+      Math.min(o1 - o0 - 0.4, 13), sf.fascia))
+  }
+
+  if (b.name && !sf.noBlade && span > 5) {
+    blade(brush, g, o0 + 1.6, b.name, sf, signs)
+  }
+
+  if (!b.name) leaseCard(brush, g, (o0 + o1) / 2, signs)
+}
+
+// Depth from the mall face to the back of the shop.
+function deepAxis(b, g) {
+  return g.horiz ? b.z1 - b.z0 - WALL : b.x1 - b.x0 - WALL
+}
+
+function closure(brush, g, sf, o0, o1, accent, fascia) {
+  const d0 = LEASE
+  const d1 = LEASE + CLOSURE
+  const mull = (a, b2) => {
+    const bays = Math.max(1, Math.round((b2 - a) / 2))
     for (let i = 0; i <= bays; i++) {
-      const m = g0 + ((g1 - g0) * i) / bays
-      fbox(brush, f, m - 0.125, m + 0.125, f.w0 + 0.1, f.w0 + 0.4, 0, HEAD, C.storefrontDark)
+      const m = a + ((b2 - a) * i) / bays
+      dbox(brush, g, m - 0.125, m + 0.125, d0 - 0.05, d1 + 0.05, 0, HEAD, C.storefrontDark)
     }
   }
-  // Piers framing the walk-in.
-  fbox(brush, f, o0, o0 + 0.25, f.w0, f.w1, 0, HEAD, C.storefrontDark)
-  fbox(brush, f, o1 - 0.25, o1, f.w0, f.w1, 0, HEAD, C.storefrontDark)
+  const door = (w) => [ (o0 + o1) / 2 - w / 2, (o0 + o1) / 2 + w / 2 ]
 
-  // Fascia the sign hangs on, plus a brass reveal under it.
-  fbox(brush, f, f.a0, f.a1, f.w0, f.w1, HEAD, HEAD + SIGN_H, C.signBoard)
-  fbox(brush, f, f.a0, f.a1, f.w0, f.w1, HEAD - 0.15, HEAD, C.brass)
-
-  if (b.name) {
-    signs.push(makeSign(b.name, f, HEAD + SIGN_H / 2, Math.min(span - 0.6, 13)))
+  switch (sf.glazing) {
+    case 'full': {
+      // Glass either side of a walk-in, kick rail along the bottom.
+      const [dl, dr] = door((o1 - o0) * 0.42)
+      for (const [a, b2] of [[o0, dl], [dr, o1]]) {
+        if (b2 - a < 0.4) continue
+        dbox(brush, g, a, b2, d0, d1, 0, HEAD, C.storefrontGlass)
+        dbox(brush, g, a, b2, d0 - 0.05, d1 + 0.05, 0, 0.35, accent)
+        dbox(brush, g, a, b2, d0 - 0.05, d1 + 0.05, HEAD - 0.2, HEAD, C.storefrontDark)
+        mull(a, b2)
+      }
+      break
+    }
+    case 'window': {
+      // Solid bulkhead with display glass above; a doorway punched through.
+      const [dl, dr] = door(1.8)
+      for (const [a, b2] of [[o0, dl], [dr, o1]]) {
+        if (b2 - a < 0.4) continue
+        dbox(brush, g, a, b2, d0, d1, 0, sf.sill, accent)
+        dbox(brush, g, a, b2, d0, d1, sf.sill, HEAD, C.storefrontGlass)
+        dbox(brush, g, a, b2, d0 - 0.05, d1 + 0.05, sf.sill, sf.sill + 0.12, C.storefrontDark)
+        mull(a, b2)
+      }
+      break
+    }
+    case 'counter': {
+      // Food service: counter across the frontage, open above it.
+      dbox(brush, g, o0, o1, d0 - 0.35, d1 + 0.1, 0, sf.sill, accent)
+      dbox(brush, g, o0, o1, d0 - 0.4, d1 + 0.15, sf.sill, sf.sill + 0.12, C.counterTile)
+      dbox(brush, g, o0, o1, d1 + 1.4, d1 + 1.7, 1.9, HEAD, fascia)   // menu board
+      break
+    }
+    case 'service': {
+      // Offices and banks: solid front, one door, one window.
+      const [dl, dr] = door(1.4)
+      dbox(brush, g, o0, dl, d0, d1, 0, HEAD, fascia)
+      dbox(brush, g, dr, o1, d0, d1, 0, HEAD, fascia)
+      const wl = o0 + (dl - o0) * 0.2
+      const wr = o0 + (dl - o0) * 0.85
+      if (wr - wl > 0.6) dbox(brush, g, wl, wr, d0, d1, 0.95, 2.25, C.storefrontGlass)
+      break
+    }
+    case 'papered': {
+      // Vacant: glazed, papered over from inside, and gated.
+      dbox(brush, g, o0, o1, d0, d1, 0, HEAD, C.papered)
+      dbox(brush, g, o0, o1, d0 - 0.12, d0 - 0.02, 0, HEAD, C.gate)
+      mull(o0, o1)
+      break
+    }
+    case 'none':
+    default: {
+      // Open frontage. Stock stacked right at the lease line is the whole
+      // point of the format — it is what pulls mall traffic in.
+      if (!sf.merch) break
+      const n = Math.max(2, Math.floor((o1 - o0) / 1.6))
+      for (let i = 0; i < n; i++) {
+        const a = o0 + 0.3 + ((o1 - o0 - 0.6) * i) / n
+        const w = (o1 - o0 - 0.6) / n - 0.35
+        if (w < 0.4) break
+        const h = 0.9 + ((i * 37) % 5) * 0.16
+        dbox(brush, g, a, a + w, d1 + 0.1, d1 + 1.0, 0, h, i % 2 ? accent : fascia)
+        dbox(brush, g, a, a + w, d1 + 0.1, d1 + 1.0, h, h + 0.12, C.merchWarm)
+      }
+      break
+    }
   }
 }
 
-function makeSign(text, f, y, width) {
-  const mid = (f.a0 + f.a1) / 2
-  const plane = f.out < 0 ? f.w0 - 0.06 : f.w1 + 0.06
-  if (f.horiz) {
-    return { text, x: mid, y, z: plane, rotY: f.out < 0 ? Math.PI : 0, width }
+// Projecting blade sign — the thing you actually read from down the concourse.
+function blade(brush, g, at, text, sf, signs) {
+  const y0 = BLADE.clear
+  const y1 = BLADE.clear + BLADE.h
+  dbox(brush, g, at - BLADE.thick / 2, at + BLADE.thick / 2, -BLADE.proj, 0.05, y0, y1, C[sf.fascia])
+  dbox(brush, g, at - BLADE.thick / 2 - 0.04, at + BLADE.thick / 2 + 0.04, -BLADE.proj - 0.05, -BLADE.proj + 0.04, y0 - 0.04, y1 + 0.04, C.brass)
+
+  // A face on each side, turned 90 degrees from the fascia.
+  const mid = (y0 + y1) / 2
+  const w = Math.min(BLADE.proj * 0.85, 0.55)
+  for (const side of [-1, 1]) {
+    const off = (BLADE.thick / 2 + 0.02) * side
+    const depth = -BLADE.proj / 2
+    const pos = g.horiz
+      ? { x: at + off, z: g.mall + g.dir * depth, rotY: side > 0 ? Math.PI / 2 : -Math.PI / 2 }
+      : { x: g.mall + g.dir * depth, z: at + off, rotY: side > 0 ? Math.PI : 0 }
+    signs.push({ text, ...pos, y: mid, width: w, ink: signInk(sf.fascia), blade: true })
   }
-  return { text, x: plane, y, z: mid, rotY: f.out < 0 ? -Math.PI / 2 : Math.PI / 2, width }
+}
+
+function leaseCard(brush, g, at, signs) {
+  dbox(brush, g, at - 0.55, at + 0.55, LEASE - 0.06, LEASE - 0.01, 1.35, 2.05, C.leaseCard)
+  signs.push(sign('SPACE AVAILABLE', g, at, 1.7, LEASE - 0.09, 1.0, 'leaseCard'))
+}
+
+// A text plane parked `depth` into the shop from the mall face, facing out.
+function sign(text, g, at, y, depth, width, fascia) {
+  const plane = g.mall + g.dir * depth
+  const rotY = g.horiz
+    ? (g.out < 0 ? Math.PI : 0)
+    : (g.out < 0 ? -Math.PI / 2 : Math.PI / 2)
+  return g.horiz
+    ? { text, x: at, y, z: plane, rotY, width, ink: signInk(fascia) }
+    : { text, x: plane, y, z: at, rotY, width, ink: signInk(fascia) }
 }
 
 // --- 4. Anchors -----------------------------------------------------------
@@ -149,9 +329,6 @@ function carveAnchor(brush, a, signs) {
   // Mall entrance: a wide opening in the wall that faces the concourse.
   const e = a.entry
   const w = e.half ?? 7
-  const f = e.face === 'S'
-    ? { horiz: true, a0: e.at * 0 + 0, a1: 0, w0: r.z1 - t, w1: r.z1, out: 1 }
-    : null
   const openings = {
     S: () => brush.clear(mAt(e) - w, 0, r.z1 - t - 0.3, mAt(e) + w, HEAD + 0.6, r.z1 + 0.3),
     N: () => brush.clear(mAt(e) - w, 0, r.z0 - 0.3, mAt(e) + w, HEAD + 0.6, r.z0 + t + 0.3),
@@ -161,18 +338,17 @@ function carveAnchor(brush, a, signs) {
   openings[e.face]()
 
   // Fascia + sign over the entrance.
-  const sf = {
-    S: { horiz: true, a0: mAt(e) - w, a1: mAt(e) + w, w0: r.z1 - t, w1: r.z1, out: +1 },
-    N: { horiz: true, a0: mAt(e) - w, a1: mAt(e) + w, w0: r.z0, w1: r.z0 + t, out: -1 },
-    E: { horiz: false, a0: mAt(e) - w, a1: mAt(e) + w, w0: r.x1 - t, w1: r.x1, out: +1 },
-    W: { horiz: false, a0: mAt(e) - w, a1: mAt(e) + w, w0: r.x0, w1: r.x0 + t, out: -1 },
+  const sg = {
+    S: { horiz: true,  a0: mAt(e) - w, a1: mAt(e) + w, mall: r.z1, dir: -1, out: +1 },
+    N: { horiz: true,  a0: mAt(e) - w, a1: mAt(e) + w, mall: r.z0, dir: +1, out: -1 },
+    E: { horiz: false, a0: mAt(e) - w, a1: mAt(e) + w, mall: r.x1, dir: -1, out: +1 },
+    W: { horiz: false, a0: mAt(e) - w, a1: mAt(e) + w, mall: r.x0, dir: +1, out: -1 },
   }[e.face]
-  fbox(brush, sf, sf.a0, sf.a1, sf.w0, sf.w1, HEAD + 0.6, HEAD + 0.6 + SIGN_H + 0.3, C.signBoard)
-  signs.push(makeSign(a.name.toUpperCase(), sf, HEAD + 1.2, 13))
+  dbox(brush, sg, sg.a0, sg.a1, 0, t, HEAD + 0.6, HEAD + 0.6 + SIGN_H + 0.3, C.signBoard)
+  signs.push(sign(a.name.toUpperCase(), sg, (sg.a0 + sg.a1) / 2, HEAD + 1.2, -0.06, 13, 'signBoard'))
 
   // Rooftop plant so the anchors read as anchors from the parking lot.
   brush.box(r.x0 + 6, ANCHOR_ROOF, r.z0 + 6, r.x0 + 14, ANCHOR_ROOF + 1.4, r.z0 + 12, C.roofUnit)
-  void f
 }
 
 // Entry position is stored in scan pixels along the entry axis.
