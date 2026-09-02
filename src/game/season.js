@@ -9,7 +9,7 @@ const asked = typeof location === 'undefined'
 export const SEASON = SEASONS.includes(asked) ? asked : 'summer'
 
 export const SEASON_LABEL = {
-  summer: 'July 1996',
-  backToSchool: 'August 1996',
-  christmas: 'December 1996',
+  summer: 'July 2000',
+  backToSchool: 'August 2000',
+  christmas: 'December 2000',
 }[SEASON]

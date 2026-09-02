@@ -10,8 +10,8 @@ import { signInk, storefront } from './tenants.js'
 import { ACCENTS, DEPARTMENTS, FLOORS } from './anchors.js'
 import { VOXEL, WALL } from './config.js'
 import {
-  ANCHORS, BAYS, CORRIDORS, DIRECTORY_BOARDS, FOOTPRINT, FOUNTAIN, H, KIOSK_SIZE,
-  KIOSKS, mx, mz, OUTPARCELS, RESTROOMS, TEMP_TENANTS,
+  ANCHORS, BAYS, CAROUSEL, CORRIDORS, DIRECTORY_BOARDS, FOOTPRINT, FOUNTAIN, H,
+  KIOSK_SIZE, KIOSKS, mx, mz, OUTPARCELS, RESTROOMS, TEMP_TENANTS,
 } from './plan.js'
 import { SEASON } from './season.js'
 
@@ -33,6 +33,7 @@ export function buildMall(world, brush) {
   concourseFurniture(brush)
   fountainCourt(brush)
   KIOSKS.forEach((k) => kiosk(brush, k, signs))
+  carousel(brush, signs)
   temporaryTenants(brush, signs)
   DIRECTORY_BOARDS.forEach((b) => directoryBoard(brush, b, boards))
   exteriorSkin(world, brush)
@@ -215,6 +216,24 @@ function carveShop(brush, b, signs) {
   } else {
     dbox(brush, g, o0, o1, 0, WALL, HEAD, HEAD + SIGN_H, fascia)
     dbox(brush, g, o0, o1, 0, 0.18, HEAD - 0.14, HEAD, C.brass)
+  }
+
+  if (sf.stripes) {
+    // Scalloped fabric awning, striped along the frontage.
+    const [ca, cb] = sf.stripes.map((n) => C[n])
+    const prof = [[0.0, 0.0], [0.3, 0.16], [0.62, 0.36], [0.94, 0.62]]
+    for (let at = o0; at < o1 - 0.2; at += 0.5) {
+      const col = (Math.round((at - o0) / 0.5) % 2) ? cb : ca
+      for (const [out, drop] of prof) {
+        dbox(brush, g, at, Math.min(at + 0.5, o1), -out - 0.32, -out,
+          HEAD - 0.1 - drop, HEAD + 0.15 - drop, col)
+      }
+    }
+    // Valance hanging off the front edge.
+    for (let at = o0; at < o1 - 0.2; at += 0.5) {
+      const col = (Math.round((at - o0) / 0.5) % 2) ? cb : ca
+      dbox(brush, g, at, Math.min(at + 0.5, o1), -1.26, -0.94, HEAD - 0.9, HEAD - 0.55, col)
+    }
   }
 
   if (sf.awning) {
@@ -980,6 +999,7 @@ function acousticCeiling(brush, r, y) {
 // get dropped on top of a kiosk or into the fountain.
 function occupied(x, z, r) {
   if (Math.hypot(x - FOUNTAIN.x, z - FOUNTAIN.z) < FOUNTAIN.r + r + 2) return true
+  if (Math.hypot(x - CAROUSEL.x, z - CAROUSEL.z) < CAROUSEL.r + r + 2) return true
   return KIOSKS.some((k) => {
     const cx = (k.at.x0 + k.at.x1) / 2
     const cz = (k.at.z0 + k.at.z1) / 2
@@ -1147,6 +1167,48 @@ function fountainCourt(brush) {
     const a = (i / 6) * Math.PI * 2 + 0.4
     bench(brush, x + Math.cos(a) * (r + 2.6), z + Math.sin(a) * (r + 2.6), i % 2 === 0)
   }
+}
+
+// --- Carousel -------------------------------------------------------------
+// "Even a carousel for the kids." — Colonial Mall Decatur, 2000.
+
+function carousel(brush, signs) {
+  const { x, z, r } = CAROUSEL
+  brush.column(x, z, r + 0.5, 0, 0.16, C.chromeDark)
+  brush.column(x, z, r, 0.16, 0.4, C.bench)
+  brush.ring(x, z, r, r - 0.35, 0.4, 0.55, C.craftsmanRed)
+  brush.column(x, z, 0.45, 0.4, 3.0, C.brass)
+
+  const horses = 8
+  for (let i = 0; i < horses; i++) {
+    const a = (i / horses) * Math.PI * 2
+    const px = x + Math.cos(a) * (r - 1.0)
+    const pz = z + Math.sin(a) * (r - 1.0)
+    brush.box(px - 0.06, 0.4, pz - 0.06, px + 0.06, 2.55, pz + 0.06, C.brass)
+    const body = [C.craftsmanRed, C.bench, C.toyBlue, C.toyYellow][i % 4]
+    brush.box(px - 0.42, 0.95, pz - 0.2, px + 0.42, 1.45, pz + 0.2, body)
+    brush.box(px + 0.2, 1.35, pz - 0.16, px + 0.5, 1.8, pz + 0.16, body)
+    for (const lx of [-0.3, 0.25]) {
+      brush.box(px + lx, 0.55, pz - 0.16, px + lx + 0.14, 0.98, pz + 0.16, body)
+    }
+  }
+
+  // Striped canopy, with lamps around the rim.
+  const bands = 6
+  for (let k = 0; k < bands; k++) {
+    const rOut = r + 0.35 - k * ((r + 0.35) / bands)
+    const rIn = r + 0.35 - (k + 1) * ((r + 0.35) / bands)
+    brush.ring(x, z, rOut, Math.max(0, rIn), 2.86 + k * 0.14, 3.02 + k * 0.14,
+      k % 2 ? C.bench : C.craftsmanRed)
+  }
+  const lamps = 16
+  for (let i = 0; i < lamps; i++) {
+    const a = (i / lamps) * Math.PI * 2
+    brush.box(x + Math.cos(a) * (r + 0.2) - 0.09, 2.78, z + Math.sin(a) * (r + 0.2) - 0.09,
+              x + Math.cos(a) * (r + 0.2) + 0.09, 2.94, z + Math.sin(a) * (r + 0.2) + 0.09,
+              C.troffer)
+  }
+  signs.push({ text: 'CAROUSEL', x, y: 3.35, z: z + r + 0.3, rotY: 0, width: 2.6 })
 }
 
 // --- 9. Kiosks ------------------------------------------------------------

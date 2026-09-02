@@ -34,7 +34,7 @@ export function drawDirectory(scale = 3.1) {
   g.fillStyle = INK
   g.font = '700 26px "Cormorant Garamond", Georgia, serif'
   g.textBaseline = 'alphabetic'
-  g.fillText('RIVER OAKS CENTRE', pad, 30)
+  g.fillText('COLONIAL MALL DECATUR', pad, 30)
   g.font = '500 12px Helvetica, Arial, sans-serif'
   g.fillText(SEASON_LABEL.toUpperCase(), canvas.width - pad - g.measureText(SEASON_LABEL).width - 12, 30)
 

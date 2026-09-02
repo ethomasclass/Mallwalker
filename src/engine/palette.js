@@ -60,6 +60,14 @@ const HEX = {
   kioskTop:       0x4F4A46,
   carousel:       0xC9435A,
 
+  // --- 2000 tenants -------------------------------------------------------
+  bathWhite:      0xF3EFE4,
+  bathGreen:      0x1F5236,
+  clairePink:     0xD8317E,
+  cvsRed:         0xC8102E,
+  vsPink:         0xE8A0B8,
+  vsCream:        0xF6EFE6,
+
   // --- Concourse fittings -------------------------------------------------
   chrome:         0xB9BCC0,
   chromeDark:     0x7E8388,

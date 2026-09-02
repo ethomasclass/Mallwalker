@@ -1,9 +1,10 @@
-// River Oaks Centre, Decatur, Alabama — as directoried c. 1996.
+// Colonial Mall Decatur, Alabama — as directoried in 2000.
 //
-// Geometry is traced from the mall's own fold-out directory (a scan lives in
-// public/reference/directory-1990s.jpg). Rectangles below are given in that
-// scan's pixel space and converted to metres by PX; keeping the pixel numbers
-// makes it easy to re-check a bay against the map.
+// The building is the same one the 1996 River Oaks Centre directory shows; by
+// 2000 it had been renamed and re-tenanted. Geometry is traced from the mall's
+// own fold-out directories (scans in public/reference/). Rectangles below are
+// given in the 1996 scan's pixel space and converted to metres by PX; keeping
+// the pixel numbers makes it easy to re-check a bay against either map.
 //
 // Where the printed map draws corridors thinner than a person can walk, the
 // corridor is widened to a real-world dimension and the flanking bays are
@@ -45,39 +46,46 @@ export const TENANTS = {
   300: 'JCPenney',
   400: 'Castner Knott',
   500: 'Parisian',
-  600: 'Castner Knott — Store for Home',
+  600: 'Castner Knott Market Centre',
 
   102: 'Briarpatch', 104: "Sabghi's", 110: "Athlete's Feet",
   112: null, 116: null, 118: null, 119: null, 120: null,
 
-  124: 'Pocket Change', 126: null, 128: null,
-  130: 'Card & Collectible Empire', 134: null, 140: null,
+  124: 'Pocket Change', 126: null,
+  128: 'Decatur Police Substation',
+  130: 'Card & Collectibles Empire', 134: null,
+  140: 'Dollar Tree',
   142: 'MasterCuts', 144: 'University Collectibles',
-  148: "Kid's Avenue", 150: "Van's Photo",
+  148: 'AcScents', 150: 'Bourbon Street Candy Co.',
 
   152: 'Radio Shack', 154: 'KayBee Toys', 158: 'Lane Bryant',
-  160: null, 162: "Lynn's Hallmark", 164: 'Camelot Music',
+  162: "Lynn's Hallmark", 164: 'Camelot',
   166: 'Bath & Body Works',
 
-  202: 'Eyemasters', 206: null, 208: 'Great American Cookie Co.',
+  202: 'Eyemaster', 206: null, 208: 'Great American Cookie Co.',
   212: 'General Nutrition', 214: 'Hibbett',
-  220: "Claire's Boutique", 222: 'Nail Studio',
+  218: null, 220: "Claire's Boutique", 222: 'Nail Studio',
   226: null, 228: null, 229: null, 230: null, 231: null,
 
   302: null, 304: 'Superior Alterations', 308: null,
-  310: 'The Living World', 314: null, 318: null, 320: 'Dollar Tree',
+  310: 'The Living Word', 318: 'Regency Jewelers', 320: null,
 
   402: 'Burch & Hatfield Formal Shop', 404: 'JayMark Jewelers',
-  408: 'Platters', 412: 'Sterling Travel Express', 416: 'Bookland',
+  408: null, 412: 'Sterling Travel Express', 416: 'Footlocker',
   420: null, 424: 'Chick-fil-A', 426: 'Disc Jockey', 430: 'Regis',
-  434: 'Payless', 436: null, 438: 'Exper-tees', 440: 'Chongwah Express',
-  442: "Morrison's Cafeteria", 444: 'AmSouth Bank', 450: 'Revco',
-  452: 'Heel Quick!', 454: "Love Tucky's Yogurt", 455: 'Footquarters',
-  456: "Friedman's Jewelry", 460: "Judy's Place", 462: 'Footlocker',
-  464: "Sbarro's Pizza", 470: 'Lerner', 472: 'Afterthoughts',
-  474: 'Expressions', 476: null, 478: 'Joe Wheeler Electric',
+  434: 'Payless', 436: "Victoria's Secret", 438: 'Exper-tees',
+  440: 'Chongwah Express', 442: "Morrison's", 444: null,
+  450: 'CVS Pharmacy', 452: null, 454: 'Snack Express',
+  455: 'Footquarters', 456: 'Marks & Morgan Jewelers',
+  460: "Judy's Place", 462: null, 464: "Sbarro's Pizza",
+  470: 'Lerner', 472: 'Afterthoughts', 474: 'Expressions',
+  476: null, 478: 'Joe Wheeler Electric',
   480: 'Decatur Public Library — Southwest Branch',
-  484: 'The Shoe Department', 488: 'Merle Norman',
+  484: 'The Shoe Department',
+  // The 2000 brochure lists Merle Norman at 448, but no 448 appears anywhere
+  // on its own map and 488 is drawn exactly where Merle Norman stood in 1996.
+  // Treating the list number as a misprint.
+  488: 'Merle Norman',
 }
 
 const bay = (id, rect, face) => ({ id, face, ...rect, name: TENANTS[id] ?? null })
@@ -93,8 +101,8 @@ export const ANCHORS = [
 
 // Detached outparcels — visible from the parking lot, not walkable yet.
 export const OUTPARCELS = [
-  { id: 601, name: 'River Oaks Cinema 8', rect: R(1218, 190, 1330, 300), height: 9.0 },
-  { id: 600, name: 'Castner Knott — Store for Home', rect: R(1330, 437, 1478, 552), height: 7.5 },
+  { id: 601, name: 'Regal Cinema', rect: R(1218, 190, 1330, 300), height: 9.0 },
+  { id: 600, name: 'Castner Knott Market Centre', rect: R(1330, 437, 1478, 552), height: 7.5 },
 ]
 
 // --- Corridors ------------------------------------------------------------
@@ -162,8 +170,7 @@ export const BAYS = [
   bay(304, R(1038, 478, 1064, 500), 'W'),
   bay(308, R(1038, 500, 1090, 528), 'W'),
   bay(310, R(1038, 528, 1090, 570), 'W'),
-  bay(314, R(1038, 570, 1064, 588), 'W'),
-  bay(318, R(1038, 588, 1064, 606), 'W'),
+  bay(318, R(1038, 570, 1064, 606), 'W'),
   bay(320, R(1064, 570, 1090, 606), 'W'),
 
   // Main concourse, south side — west pocket off the Parisian end
@@ -197,13 +204,14 @@ export const BAYS = [
   bay(440, R(820, 734, 878, 772), 'E'),
   bay(442, R(900, 700, 940, 772), 'W'),
 
-  // South-east corner, off the 976 recess
-  bay(408, R(1044, 654, 1082, 700), 'N'),
-  bay(416, R(1000, 654, 1044, 700), 'W'),
-  bay(412, R(1000, 700, 1044, 744), 'W'),
-  bay(420, R(1000, 744, 1044, 772), 'W'),
+  // South-east corner. By 2000 Foot Locker had moved out of 462 into 416,
+  // which the map draws as the deepest unit on this end of the mall.
+  bay(416, R(1044, 654, 1090, 730), 'N'),
+  bay(420, R(1000, 654, 1044, 690), 'W'),
+  bay(412, R(1000, 690, 1044, 730), 'W'),
+  bay(402, R(1000, 730, 1044, 772), 'W'),
   bay(404, R(940, 700, 976, 744), 'E'),
-  bay(402, R(940, 744, 976, 772), 'E'),
+  bay(408, R(940, 744, 976, 772), 'E'),
 ]
 
 // --- Kiosks & fixtures ----------------------------------------------------
@@ -218,13 +226,13 @@ const kiosk = (id, name, px, pz) => ({
 
 export const KIOSKS = [
   kiosk('G', 'Things Remembered', 652, 630),
-  kiosk('F', 'The Cellular Shop',  702, 630),
-  kiosk('E', 'Sunglass Hut',       754, 630),
-  kiosk('D', 'Customer Service',   812, 630),
-  kiosk('C', 'Gems, Gold & More',  870, 630),
-  kiosk('B', 'Powerful Stuff',     926, 630),
-  kiosk('A', 'Pretzel Time',       982, 630),
-  kiosk('H', 'Precious Jewelers',  598, 548),
+  kiosk('F', 'Cellular Shop',     702, 630),
+  kiosk('E', 'Sunglass Hut',      754, 630),
+  kiosk('D', 'Silver Tree',       800, 630),
+  kiosk('C', 'Customer Service',  846, 630),
+  kiosk('B', 'Gems, Gold & More', 918, 630),
+  kiosk('A', 'Pretzel Time',      972, 630),
+  kiosk('H', 'Precious Jewelers', 598, 548),
 ]
 
 export const RESTROOMS = [
@@ -234,6 +242,9 @@ export const RESTROOMS = [
 ]
 
 export const FOUNTAIN = { x: mx(600), z: mz(620), r: 4.5 }
+
+// "Even a carousel for the kids." — Colonial Mall Decatur brochure, 2000.
+export const CAROUSEL = { x: mx(1010), z: mz(630), r: 3.6 }
 
 // Start in the fountain court, ten metres back from the kerb and facing the
 // fountain, so the first thing you see is the room rather than the water.
@@ -255,7 +266,7 @@ export const ENVELOPE = [
   R(690, 700, 806, 772),   // Revco / AmSouth
   R(806, 654, 1000, 700),  // south-east run
   R(820, 700, 966, 772),   // cafeteria block
-  R(940, 654, 1082, 772),  // south-east corner
+  R(940, 654, 1090, 772),  // south-east corner
 ]
 
 // Corridors are carved out of the envelope, so a corridor whose rect *is* an
@@ -281,9 +292,8 @@ export const FOOTPRINT = [
 export const TEMP_TENANTS = [
   { name: "Dippin' Dots",   at: [742, 630], seasons: ['summer', 'backToSchool'] },
   { name: 'Railroad Bazaar', at: [700, 630], seasons: ['summer', 'christmas'] },
-  { name: 'Silver Tree',     at: [852, 630], seasons: ['christmas'] },
-  { name: 'Snows Gifts',     at: [900, 630], seasons: ['christmas'] },
-  { name: 'Calendar Club',   at: [852, 630], seasons: ['backToSchool'] },
+  { name: 'Snow Gifts',      at: [880, 630], seasons: ['christmas'] },
+  { name: 'Calendar Club',   at: [880, 630], seasons: ['backToSchool'] },
 ]
 
 export const SEASONS = ['summer', 'backToSchool', 'christmas']

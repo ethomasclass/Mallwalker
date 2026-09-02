@@ -207,7 +207,7 @@ const inRect = (r, x, z) => x >= r.x0 && x < r.x1 && z >= r.z0 && z < r.z1
 function locate(x, z) {
   for (const r of ZONES) if (inRect(r, x, z)) return r
   for (const r of CORRIDOR_ZONES) if (inRect(r, x, z)) return r
-  return { zone: 'River Oaks Centre', label: '' }
+  return { zone: 'Colonial Mall Decatur', label: '' }
 }
 
 const readoutZone = document.getElementById('readout-zone')

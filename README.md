@@ -1,7 +1,7 @@
 # Mallwalker
 
-A first-person walking sim set in **River Oaks Centre**, Decatur, Alabama, as it
-stood in the mid-1990s — rebuilt in voxels.
+A first-person walking sim set in **Colonial Mall Decatur**, Alabama, as it
+stood in 2000 — rebuilt in voxels.
 
 No shopping, no objectives. You walk the concourse.
 
@@ -23,9 +23,14 @@ automatically from `pointer: coarse`.
 
 ## What's modelled
 
-Geometry is traced from the mall's own fold-out directory, scanned in
-`public/reference/directory-1990s.jpg`. Every numbered space on that map exists
-in the world at its real address, with the tenant the directory lists in it:
+Geometry is traced from the mall's own fold-out directories, scanned in
+`public/reference/`. The building opened as Beltline Mall in 1978, was renamed
+River Oaks Centre, gained the Sears and JCPenney wings in 1987, and was
+Colonial Mall Decatur by 2000. The world is built to the **2000** directory;
+the 1996 one is kept alongside it because the two together date every change.
+
+Every numbered space on the map exists in the world at its real address, with
+the tenant the directory lists in it:
 
 | | |
 |---|---|
@@ -34,13 +39,20 @@ in the world at its real address, with the tenant the directory lists in it:
 | **300** | JCPenney |
 | **400** | Castner Knott |
 | **500** | Parisian |
-| **600** | Castner Knott — Store for Home *(outparcel)* |
-| **601** | River Oaks Cinema 8 *(outparcel)* |
+| **600** | Castner Knott Market Centre *(outparcel)* |
+| **601** | Regal Cinema *(outparcel)* |
 
-…plus 52 named inline tenants (Camelot, KayBee, Lane Bryant, Sbarro's, Revco,
-Morrison's Cafeteria, the Decatur Public Library branch in 480, and so on),
-23 spaces the directory shows as vacant, the eight lettered kiosks, both
-restroom blocks and the mall office.
+…plus 51 named inline tenants (Camelot, KayBee, Lane Bryant, Sbarro's, CVS,
+Victoria's Secret, Morrison's, the Decatur Public Library branch in 480, the
+Decatur Police substation in 128, and so on), 22 spaces the directory shows as
+vacant, the eight lettered kiosks, both restroom blocks, the mall office, and
+the carousel the brochure advertises.
+
+Between 1996 and 2000 the roster moved a lot, and the model follows it: Revco
+became CVS in the 1997 buyout, Foot Locker moved out of 462 into the big unit
+at 416, Friedman's became Marks & Morgan, Dollar Tree crossed the mall from
+320 to 140, Bookland and Platters and AmSouth and Heel Quick! are gone, and
+Victoria's Secret, Regency Jewelers and a police substation have arrived.
 
 Interior detail — mauve-and-cream diamond tile, coved and lit ceiling soffits,
 speckled granite columns, the skylit fountain court with its brass pots of

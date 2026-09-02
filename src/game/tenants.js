@@ -35,65 +35,88 @@ const T = {
   102: ['window',  'cardGreen',      'merchWarm'],      // Briarpatch
   104: ['window',  'jewelryNavy',    'jewelryGold'],    // Sabghi's
   110: ['glass',   'apparelNavy',    'athleticStripe'], // Athlete's Feet
+
   // Pocket Change was the arcade: black tile piers, an open front, and a dark
-  // room lit only by the cabinets.
+  // room lit only by its cabinets.
   124: ['open',    'musicBlack',     'electronicsRed',
         { arcade: true, pilaster: 'musicBlack', interior: 'arcadeCab',
           walls: 'arcadeCab' }],
-  130: ['window',  'cardGreen',      'jewelryGold'],    // Card & Collectible Empire
+
+  128: ['service', 'phoneBlue',      'chrome'],         // Police substation
+  130: ['window',  'cardGreen',      'jewelryGold'],    // Card & Collectibles
+  140: ['open',    'pizzaGreen',     'toyYellow'],      // Dollar Tree
   142: ['salon',   'salonMauve',     'counterTile'],    // MasterCuts
   144: ['window',  'cafeteriaMaroon','jewelryGold'],    // University Collectibles
-  148: ['open',    'accessoryPink',  'toyYellow'],      // Kid's Avenue
-  150: ['window',  'apparelTeal',    'electronicsGrey'],// Van's Photo
+  148: ['window',  'apparelPlum',    'merchWarm'],      // AcScents
+  150: ['counter', 'cafeteriaMaroon','jewelryGold'],    // Bourbon Street Candy
+
   // RadioShack: black fascia, and the red back wall you could see from across
   // the concourse.
   152: ['full',    'musicBlack',     'electronicsGrey',
         { interior: 'electronicsRed' }],
+
   // KayBee: blue fascia, red letters, confetti on the piers, sale banners
   // strung across the ceiling and stock stacked into the opening.
   154: ['open',    'toyBlue',        'toyRed',
         { pilaster: 'toyBlue', confetti: true, banners: true, interior: 'toyBlue' }],
-  158: ['glass',   'apparelPlum',    'jewelryGold'],    // Lane Bryant
+
+  158: ['window',  'apparelPlum',    'jewelryGold'],    // Lane Bryant
   162: ['window',  'jewelryGold',    'musicBlack'],     // Lynn's Hallmark
-  164: ['window',  'musicBlack',     'musicPurple'],    // Camelot Music
-  166: ['glass',   'bookGreen',      'counterTile'],    // Bath & Body Works
-  202: ['window',  'apparelTeal',    'electronicsGrey'],// Eyemasters
+  164: ['window',  'musicBlack',     'musicPurple'],    // Camelot
+
+  // Bath & Body Works: white shopfront under a hunter-green striped awning.
+  166: ['glass',   'bathWhite',      'bathGreen',
+        { stripes: ['bathGreen', 'bathWhite'], interior: 'bathWhite',
+          pilaster: 'bathWhite' }],
+
+  202: ['window',  'apparelTeal',    'electronicsGrey'],// Eyemaster
   208: ['counter', 'chickenRed',     'counterTile'],    // Great American Cookie
   212: ['window',  'nutritionNavy',  'nutritionGold'],  // General Nutrition
   214: ['glass',   'apparelNavy',    'athleticStripe'], // Hibbett
-  220: ['glass',   'accessoryPink',  'jewelryGold'],    // Claire's Boutique
+
+  // Claire's: hot pink, wide open front, walls of accessories.
+  220: ['open',    'clairePink',     'jewelryGold',
+        { pilaster: 'clairePink', interior: 'clairePink' }],
+
   222: ['salon',   'salonMauve',     'jewelryGold'],    // Nail Studio
   304: ['service', 'apparelNavy',    'counterTile'],    // Superior Alterations
-  310: ['open',    'bookGreen',      'merchWarm'],      // The Living World
-  320: ['open',    'pizzaGreen',     'toyYellow'],      // Dollar Tree
+  310: ['open',    'bookGreen',      'merchWarm'],      // The Living Word
+  318: ['window',  'jewelryNavy',    'jewelryGold'],    // Regency Jewelers
   402: ['window',  'musicBlack',     'jewelryGold'],    // Burch & Hatfield
   404: ['window',  'jewelryNavy',    'jewelryGold'],    // JayMark Jewelers
-  408: ['counter', 'cafeteriaMaroon','counterTrim'],    // Platters
   412: ['service', 'utilityBlue',    'counterTile'],    // Sterling Travel
-  // Bookland: dark fascia in a stone surround, an open front, and tables of
-  // books pushed right out to the lease line under yellow sale cards.
-  416: ['open',    'apparelNavy',    'saleYellow',
-        { books: true, interior: 'shelfWhite', pilaster: 'neutralPier' }],
+
+  // Foot Locker's 90s shopfront was a stepped wood gable, not a flat fascia,
+  // with round shoe towers just inside. It moved into 416 by 2000.
+  416: ['open',    'woodFront',      'athleticStripe',
+        { gable: true, pilaster: 'woodFront', towers: true, interior: 'shoeWall' }],
+
   424: ['counter', 'chickenRed',     'counterTile'],    // Chick-fil-A
   426: ['window',  'musicPurple',    'toyYellow'],      // Disc Jockey
   430: ['salon',   'musicBlack',     'salonMauve'],     // Regis
   434: ['open',    'shoeOrange',     'apparelNavy'],    // Payless
+
+  // Victoria's Secret: pink-and-white striped awning over a dark, framed
+  // shopfront.
+  436: ['window',  'vsPink',         'vsCream',
+        { stripes: ['vsPink', 'vsCream'], interior: 'vsPink', sill: 0.8 }],
+
   438: ['open',    'apparelTeal',    'toyYellow'],      // Exper-tees
   440: ['counter', 'pizzaRed',       'jewelryGold'],    // Chongwah Express
-  442: ['window',  'cafeteriaMaroon','counterTrim'],    // Morrison's Cafeteria
-  444: ['service', 'bankGreen',      'jewelryGold'],    // AmSouth Bank
-  450: ['glass',   'drugBlue',       'electronicsGrey'],// Revco
-  452: ['service', 'shoeOrange',     'counterTile'],    // Heel Quick!
-  454: ['counter', 'accessoryPink',  'counterTile'],    // Love Tucky's Yogurt
+  442: ['window',  'cafeteriaMaroon','counterTrim'],    // Morrison's
+
+  // Revco became CVS in the 1997 buyout: red fascia, wide glass, blue trim.
+  450: ['glass',   'cvsRed',         'drugBlue',
+        { interior: 'shelfWhite' }],
+
+  454: ['counter', 'accessoryPink',  'counterTile'],    // Snack Express
   455: ['glass',   'shoeOrange',     'apparelNavy'],    // Footquarters
-  456: ['window',  'jewelryNavy',    'jewelryGold'],    // Friedman's Jewelry
+  456: ['window',  'jewelryNavy',    'jewelryGold'],    // Marks & Morgan
   460: ['window',  'apparelPlum',    'merchWarm'],      // Judy's Place
-  // Foot Locker's 90s shopfront was a stepped wood gable, not a flat fascia,
-  // with round shoe towers just inside.
-  462: ['open',    'woodFront',      'athleticStripe',
-        { gable: true, pilaster: 'woodFront', towers: true, interior: 'shoeWall' }],
+
   // Sbarro's red barrel awning over the servery.
   464: ['counter', 'pizzaRed',       'pizzaGreen', { awning: true }],
+
   470: ['glass',   'apparelNavy',    'accessoryPink'],  // Lerner
   472: ['glass',   'accessoryPink',  'jewelryGold'],    // Afterthoughts
   474: ['salon',   'salonMauve',     'counterTile'],    // Expressions
@@ -116,7 +139,8 @@ const DARK_FASCIAS = new Set([
   'bankGreen', 'bookGreen', 'cardGreen', 'apparelPlum', 'musicPurple',
   'utilityBlue', 'drugBlue', 'pizzaGreen', 'pizzaRed', 'toyRed', 'toyBlue',
   'chickenRed', 'electronicsRed', 'apparelTeal', 'libraryBrick', 'shoeOrange',
-  'athleticStripe', 'salonMauve',
+  'athleticStripe', 'salonMauve', 'clairePink', 'cvsRed', 'vsPink', 'phoneBlue',
+  'bathGreen',
 ])
 
 export const signInk = (fascia) => (DARK_FASCIAS.has(fascia) ? '#f6f2e8' : '#1d1a17')
