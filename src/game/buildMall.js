@@ -161,6 +161,9 @@ function carveShop(brush, b, signs) {
   }
 
   const g = front(b)
+  // A bay may open through only part of its edge (Morrison's dining room is
+  // reached down a neck, not across its whole frontage).
+  if (b.span) { g.a0 = b.span.a0; g.a1 = b.span.a1 }
   const span = g.a1 - g.a0
   const pier = Math.min(PIER, span * 0.16)
   const o0 = g.a0 + pier
@@ -253,7 +256,13 @@ function carveShop(brush, b, signs) {
     blade(brush, g, o0 + 1.6, b.name, sf, signs)
   }
 
-  if (b.name) fitOut(brush, g, sf, back, fascia, accent)
+  if (b.name) {
+    const room = b.span
+      ? { ...g, a0: (b.face === 'N' || b.face === 'S') ? b.x0 : b.z0,
+                a1: (b.face === 'N' || b.face === 'S') ? b.x1 : b.z1 }
+      : g
+    fitOut(brush, room, sf, back, fascia, accent)
+  }
 
   // And keep the walk-in itself clear of whatever the fit-out just placed.
   if (sf.glazing !== 'papered') {
@@ -891,17 +900,20 @@ function floors(brush) {
     brush.slab(r.x0, r.z0, r.x1, r.z1, -0.25, (ix, iz) => {
       const x = ix * VOXEL, z = iz * VOXEL
       const edge = Math.min(x - r.x0, r.x1 - x, z - r.z0, r.z1 - z)
+      // One-metre tiles, with the grout drawn. Without it the whole floor
+      // greedy-meshes into a single flat wash and reads as grey concrete.
+      const grout = (((ix % 4) + 4) % 4 === 0) || (((iz % 4) + 4) % 4 === 0)
+
       if (edge < 0.5) return C.tileGrey
-      if (edge < 1.5) return C.courtBand          // band hugging the shopfronts
+      if (edge < 1.5) return grout ? C.bandGrout : C.courtBand
       if (edge < 1.9) return C.tileRose
 
-      // Runner down the centre line, with lighter dashes set into it.
       const off = Math.abs((wide ? z : x) - mid)
       if (off < 0.45) {
         const along = wide ? ix : iz
-        return ((along % 10) < 2) ? C.runnerDash : C.runnerRed
+        return ((along % 10) < 2) ? C.runnerDash : (grout ? C.runnerGrout : C.runnerRed)
       }
-      return C.tileCream
+      return grout ? C.tileGrout : C.tileCream
     })
   }
 

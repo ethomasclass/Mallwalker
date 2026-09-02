@@ -88,7 +88,13 @@ export const TENANTS = {
   488: 'Merle Norman',
 }
 
-const bay = (id, rect, face) => ({ id, face, ...rect, name: TENANTS[id] ?? null })
+// `span` limits the shopfront to part of the bay's frontage, in scan pixels —
+// needed where a big room opens through a narrow neck rather than across its
+// whole edge.
+const bay = (id, rect, face, span) => ({
+  id, face, ...rect, name: TENANTS[id] ?? null,
+  span: span && { a0: (span[0] - OX) * PX, a1: (span[1] - OX) * PX },
+})
 
 // --- Anchors --------------------------------------------------------------
 export const ANCHORS = [
@@ -113,9 +119,13 @@ export const CORRIDORS = [
   { id: 'court',      rect: R(556, 588, 644, 654) },  // fountain court at the junction
   { ceilH: 4.8, id: 'jcp-spur',   rect: R(1004, 452, 1038, 606) },// N-S up to JCPenney
   { ceilH: 4.4, id: 'sw-pocket',  rect: R(578, 654, 604, 745) },  // 472-488 pocket
-  { ceilH: 4.4, id: 'south-court',rect: R(780, 654, 806, 772) },  // down to Revco / AmSouth
-  { ceilH: 4.4, id: 'food-spur',  rect: R(878, 654, 900, 772) },  // down to the cafeteria
-  { ceilH: 4.4, id: 'se-recess',  rect: R(976, 654, 1000, 772) }, // 402-420 recess
+  // The 2000 map draws ONE spur running south off the concourse, with CVS and
+  // 444 on its west side and 436/438/440 on its east. Kiosk C stands at its
+  // head.
+  { ceilH: 4.4, id: 'south-spur', rect: R(796, 654, 820, 772) },
+  // Morrison's is a cafeteria reached down a narrow neck between 434 and 430.
+  { ceilH: 4.4, id: 'morrisons',  rect: R(876, 654, 894, 712) },
+  { ceilH: 4.4, id: 'se-recess',  rect: R(998, 654, 1018, 772) }, // 412 / 416 recess
   { ceilH: 4.4, id: 'ck200-entry',rect: R(746, 570, 768, 606) },  // vestibule into Castner Knott 200
 ]
 
@@ -174,9 +184,9 @@ export const BAYS = [
   bay(320, R(1064, 570, 1090, 606), 'W'),
 
   // Main concourse, south side — west pocket off the Parisian end
-  bay(488, R(518, 654, 578, 690), 'E'),
-  bay(484, R(518, 690, 578, 712), 'E'),
-  bay(480, R(518, 712, 578, 745), 'E'),
+  bay(488, R(518, 654, 548, 700), 'N'),
+  bay(484, R(548, 654, 578, 700), 'N'),
+  bay(480, R(518, 700, 578, 745), 'E'),
   bay(472, R(604, 654, 626, 678), 'W'),
   bay(474, R(604, 678, 626, 700), 'W'),
   bay(476, R(604, 700, 626, 722), 'W'),
@@ -187,31 +197,39 @@ export const BAYS = [
   bay(464, R(654, 654, 678, 700), 'N'),
   bay(462, R(678, 654, 702, 700), 'N'),
   bay(460, R(702, 654, 724, 700), 'N'),
-  bay(455, R(724, 654, 744, 700), 'N'),
-  bay(456, R(744, 654, 762, 700), 'N'),
-  bay(454, R(762, 654, 780, 700), 'N'),
-  bay(452, R(806, 654, 830, 678), 'W'),
-  bay(450, R(690, 700, 780, 745), 'E'),
-  bay(444, R(690, 745, 780, 772), 'E'),
+  bay(455, R(724, 654, 748, 700), 'N'),
+  bay(456, R(748, 654, 764, 700), 'N'),
+  bay(454, R(764, 654, 780, 700), 'N'),
+  bay(452, R(780, 654, 796, 700), 'N'),
+  // West side of the south spur.
+  bay(450, R(690, 700, 796, 748), 'E'),
+  bay(444, R(690, 748, 796, 772), 'E'),
 
-  // Main concourse, south side — east run
-  bay(436, R(830, 654, 856, 700), 'N'),
-  bay(434, R(856, 654, 878, 700), 'N'),
-  bay(430, R(900, 654, 924, 700), 'N'),
-  bay(426, R(924, 654, 948, 700), 'N'),
-  bay(424, R(948, 654, 976, 700), 'N'),
-  bay(438, R(820, 700, 878, 734), 'E'),
-  bay(440, R(820, 734, 878, 772), 'E'),
-  bay(442, R(900, 700, 940, 772), 'W'),
+  // Main concourse, south side — east run. 436 is the corner unit at the head
+  // of the spur; 438 and 440 run down its east side behind it.
+  bay(436, R(820, 654, 848, 706), 'N'),
+  bay(438, R(820, 706, 848, 740), 'W'),
+  bay(440, R(820, 740, 848, 772), 'W'),
+  bay(434, R(848, 654, 876, 706), 'N'),
+  bay(430, R(894, 654, 918, 706), 'N'),
+  bay(426, R(918, 654, 942, 706), 'N'),
+  bay(424, R(942, 654, 976, 706), 'N'),
+  // Morrison's dining room fills the block behind that row; its only frontage
+  // is the neck, so the shopfront is built across just that span.
+  bay(442, R(848, 712, 976, 772), 'N', [876, 894]),
 
   // South-east corner. By 2000 Foot Locker had moved out of 462 into 416,
   // which the map draws as the deepest unit on this end of the mall.
-  bay(416, R(1044, 654, 1090, 730), 'N'),
-  bay(420, R(1000, 654, 1044, 690), 'W'),
-  bay(412, R(1000, 690, 1044, 730), 'W'),
-  bay(402, R(1000, 730, 1044, 772), 'W'),
-  bay(404, R(940, 700, 976, 744), 'E'),
-  bay(408, R(940, 744, 976, 772), 'E'),
+  //
+  // The map is genuinely ambiguous about how 408 and 412 are reached — the
+  // gap between the 416 block and the 404/402 block reads as back-of-house.
+  // 412 is given frontage on the recess; 408, vacant in 2000, is left as
+  // solid rather than inventing a door for it.
+  bay(420, R(976, 654, 998, 706), 'N'),
+  bay(416, R(1018, 654, 1064, 736), 'W'),
+  bay(412, R(1018, 736, 1064, 772), 'W'),
+  bay(404, R(1064, 654, 1078, 706), 'N'),
+  bay(402, R(1078, 654, 1090, 706), 'N'),
 ]
 
 // --- Kiosks & fixtures ----------------------------------------------------
@@ -262,10 +280,10 @@ export const ENVELOPE = [
   R(644, 520, 1010, 606),  // north side of the concourse + Hibbett + spur west
   R(926, 452, 1090, 606),  // JCPenney spur
   R(512, 654, 626, 745),   // south-west pocket
-  R(626, 654, 806, 700),   // south run
-  R(690, 700, 806, 772),   // Revco / AmSouth
-  R(806, 654, 1000, 700),  // south-east run
-  R(820, 700, 966, 772),   // cafeteria block
+  R(626, 654, 796, 706),   // south run
+  R(690, 700, 796, 772),   // CVS / 444
+  R(816, 654, 1000, 706),  // south-east run
+  R(816, 706, 980, 772),   // cafeteria block
   R(940, 654, 1090, 772),  // south-east corner
 ]
 

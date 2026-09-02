@@ -121,12 +121,24 @@ built from, so the map can never disagree with the building around it.
 Add `?season=christmas` (or `backToSchool`) to swap the temporary tenants the
 directory lists — Dippin' Dots, Railroad Bazaar, Silver Tree, Snows Gifts.
 
+The concourse floor is laid as one-metre tiles with the grout drawn. It is
+tempting to leave it as a flat wash — greedy meshing collapses it to almost
+nothing — but without the grid the floor reads as grey concrete rather than
+tile, which is most of what you look at while walking.
+
 ### Where the model departs from the map
 
 The printed directory draws corridors far narrower than a person can walk, and
 compresses the anchors. Corridors are therefore widened to real dimensions
 (15.4 m main concourse, ~12.8 m on the wings) and the flanking bays pushed back.
 Relative position, adjacency and unit numbering all follow the directory.
+
+Two places the 2000 map is genuinely ambiguous, resolved rather than invented:
+Morrison's dining room fills the block behind the 43x row and its only drawn
+frontage is a narrow neck between 434 and 430, so the shopfront is built across
+just that span; and the gap between the 416 block and 404/402 reads as
+back-of-house, so 412 is given frontage on the recess and 408 — vacant in 2000
+— is left solid rather than having a door invented for it.
 Scale is fixed at **0.32 m per scan pixel**, which puts the mall at roughly
 250 m end to end.
 
