@@ -55,6 +55,15 @@ solid front with one door and one window; the 23 vacancies are papered over
 from inside and gated, with a SPACE AVAILABLE card. There is no logo artwork
 anywhere — only the tenant's name, set plain.
 
+Where a photograph exists the shopfront is built to it, in
+`public/reference/`: RadioShack's black fascia over a red back wall; KayBee's
+blue fascia with red letters, confetti piers, sale banners strung across the
+ceiling and stock stacked into the opening; Pocket Change as the arcade it was
+— black tile piers, an open front, and a dark room lit only by its cabinets;
+Sbarro's red barrel awning over the servery; Foot Locker's stepped wood gable
+with round shoe towers behind it; Bookland's tables of stock pushed out to the
+lease line under yellow sale cards.
+
 Storefront dimensions follow real mall tenant design criteria: the lease line
 sits 22″ back from the face of the landlord's neutral pier, and blade signs
 project 24″ with their underside 9′-0″ clear.

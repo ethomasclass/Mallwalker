@@ -60,6 +60,22 @@ const HEX = {
   kioskTop:       0x4F4A46,
   carousel:       0xC9435A,
 
+  // --- Concourse fittings -------------------------------------------------
+  chrome:         0xB9BCC0,
+  chromeDark:     0x7E8388,
+  phoneBlue:      0x2B4E7E,
+
+  // --- Arcade & specials --------------------------------------------------
+  arcadeCarpet:   0x241E33,
+  arcadeCab:      0x1B1A20,
+  arcadeGlowA:    0x39C6F0,
+  arcadeGlowB:    0xF03C6E,
+  arcadeGlowC:    0xF2C63A,
+  woodFront:      0x9A6B3E,
+  woodTrim:       0xB98A56,
+  shoeWall:       0xF4F1EA,
+  confetti:       0xF4F1EA,
+
   // --- Department stores --------------------------------------------------
   carpetRose:     0x8E6E72,
   carpetBlue:     0x4C5B72,

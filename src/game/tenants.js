@@ -35,14 +35,24 @@ const T = {
   102: ['window',  'cardGreen',      'merchWarm'],      // Briarpatch
   104: ['window',  'jewelryNavy',    'jewelryGold'],    // Sabghi's
   110: ['glass',   'apparelNavy',    'athleticStripe'], // Athlete's Feet
-  124: ['open',    'toyBlue',        'toyYellow'],      // Pocket Change
+  // Pocket Change was the arcade: black tile piers, an open front, and a dark
+  // room lit only by the cabinets.
+  124: ['open',    'musicBlack',     'electronicsRed',
+        { arcade: true, pilaster: 'musicBlack', interior: 'arcadeCab',
+          walls: 'arcadeCab' }],
   130: ['window',  'cardGreen',      'jewelryGold'],    // Card & Collectible Empire
   142: ['salon',   'salonMauve',     'counterTile'],    // MasterCuts
   144: ['window',  'cafeteriaMaroon','jewelryGold'],    // University Collectibles
   148: ['open',    'accessoryPink',  'toyYellow'],      // Kid's Avenue
   150: ['window',  'apparelTeal',    'electronicsGrey'],// Van's Photo
-  152: ['window',  'electronicsRed', 'electronicsGrey'],// Radio Shack
-  154: ['open',    'toyRed',         'toyYellow'],      // KayBee Toys
+  // RadioShack: black fascia, and the red back wall you could see from across
+  // the concourse.
+  152: ['full',    'musicBlack',     'electronicsGrey',
+        { interior: 'electronicsRed' }],
+  // KayBee: blue fascia, red letters, confetti on the piers, sale banners
+  // strung across the ceiling and stock stacked into the opening.
+  154: ['open',    'toyBlue',        'toyRed',
+        { pilaster: 'toyBlue', confetti: true, banners: true, interior: 'toyBlue' }],
   158: ['glass',   'apparelPlum',    'jewelryGold'],    // Lane Bryant
   162: ['window',  'jewelryGold',    'musicBlack'],     // Lynn's Hallmark
   164: ['window',  'musicBlack',     'musicPurple'],    // Camelot Music
@@ -60,7 +70,10 @@ const T = {
   404: ['window',  'jewelryNavy',    'jewelryGold'],    // JayMark Jewelers
   408: ['counter', 'cafeteriaMaroon','counterTrim'],    // Platters
   412: ['service', 'utilityBlue',    'counterTile'],    // Sterling Travel
-  416: ['glass',   'bookGreen',      'merchWarm'],      // Bookland
+  // Bookland: dark fascia in a stone surround, an open front, and tables of
+  // books pushed right out to the lease line under yellow sale cards.
+  416: ['open',    'apparelNavy',    'saleYellow',
+        { books: true, interior: 'shelfWhite', pilaster: 'neutralPier' }],
   424: ['counter', 'chickenRed',     'counterTile'],    // Chick-fil-A
   426: ['window',  'musicPurple',    'toyYellow'],      // Disc Jockey
   430: ['salon',   'musicBlack',     'salonMauve'],     // Regis
@@ -75,8 +88,12 @@ const T = {
   455: ['glass',   'shoeOrange',     'apparelNavy'],    // Footquarters
   456: ['window',  'jewelryNavy',    'jewelryGold'],    // Friedman's Jewelry
   460: ['window',  'apparelPlum',    'merchWarm'],      // Judy's Place
-  462: ['open',    'athleticStripe', 'electronicsGrey'],// Footlocker
-  464: ['counter', 'pizzaRed',       'pizzaGreen'],     // Sbarro's Pizza
+  // Foot Locker's 90s shopfront was a stepped wood gable, not a flat fascia,
+  // with round shoe towers just inside.
+  462: ['open',    'woodFront',      'athleticStripe',
+        { gable: true, pilaster: 'woodFront', towers: true, interior: 'shoeWall' }],
+  // Sbarro's red barrel awning over the servery.
+  464: ['counter', 'pizzaRed',       'pizzaGreen', { awning: true }],
   470: ['glass',   'apparelNavy',    'accessoryPink'],  // Lerner
   472: ['glass',   'accessoryPink',  'jewelryGold'],    // Afterthoughts
   474: ['salon',   'salonMauve',     'counterTile'],    // Expressions
@@ -86,11 +103,11 @@ const T = {
   488: ['window',  'salonMauve',     'jewelryGold'],    // Merle Norman
 }
 
-const VACANT = ['vacant', 'neutralPier', 'papered']
+const VACANT = ['vacant', 'neutralPier', 'papered', undefined]
 
 export function storefront(bay) {
-  const [style, fascia, accent] = T[bay.id] ?? VACANT
-  return { ...STYLES[style], name: style, fascia, accent }
+  const [style, fascia, accent, opts] = T[bay.id] ?? VACANT
+  return { ...STYLES[style], name: style, fascia, accent, ...opts }
 }
 
 // Fascias this dark want light lettering; the pale ones want dark.

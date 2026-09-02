@@ -27,7 +27,7 @@ export function buildMall(world, brush) {
   carveCorridors(brush)
   BAYS.forEach((b) => carveShop(brush, b, signs))
   ANCHORS.forEach((a) => carveAnchor(brush, a, signs))
-  RESTROOMS.forEach((r) => carveService(brush, r))
+  RESTROOMS.forEach((r) => carveService(brush, r, signs))
   floors(brush)
   ceilings(brush)
   concourseFurniture(brush)
@@ -150,10 +150,14 @@ function carveShop(brush, b, signs) {
   // Sales floor.
   brush.clear(b.x0 + WALL, 0, b.z0 + WALL, b.x1 - WALL, H.storeCeil, b.z1 - WALL)
   brush.slab(b.x0 + WALL, b.z0 + WALL, b.x1 - WALL, b.z1 - WALL, -0.25,
-    () => (b.name ? C.storeFloor : C.storeCarpet))
-  // Suspended ceiling: lay-in tile and troffers, same as the wings.
-  acousticCeiling(brush,
-    { x0: b.x0 + WALL, z0: b.z0 + WALL, x1: b.x1 - WALL, z1: b.z1 - WALL }, H.storeCeil)
+    () => (sf.arcade ? C.arcadeCarpet : b.name ? C.storeFloor : C.storeCarpet))
+  const room = { x0: b.x0 + WALL, z0: b.z0 + WALL, x1: b.x1 - WALL, z1: b.z1 - WALL }
+  if (sf.arcade) {
+    // No troffers: the arcade was lit by its own cabinets and nothing else.
+    brush.box(room.x0, H.storeCeil, room.z0, room.x1, H.storeCeil + 0.25, room.z1, C.arcadeCab)
+  } else {
+    acousticCeiling(brush, room, H.storeCeil)
+  }
 
   const g = front(b)
   const span = g.a1 - g.a0
@@ -165,11 +169,28 @@ function carveShop(brush, b, signs) {
   // The rear wall carries the tenant's colour, so each shop reads as its own
   // room when you look into it from the concourse.
   const back = deepAxis(b, g)
-  dbox(brush, g, g.a0, g.a1, back - 0.3, back, 0, H.storeCeil, fascia)
+  dbox(brush, g, g.a0, g.a1, back - 0.3, back, 0, H.storeCeil, C[sf.interior ?? sf.fascia])
+  if (sf.walls) {
+    dbox(brush, g, g.a0, g.a0 + 0.3, WALL, back, 0, H.storeCeil, C[sf.walls])
+    dbox(brush, g, g.a1 - 0.3, g.a1, WALL, back, 0, H.storeCeil, C[sf.walls])
+  }
 
   // Neutral piers: landlord-built, identical the length of the mall.
-  dbox(brush, g, g.a0, o0, -0.02, WALL, 0, HEAD + SIGN_H, C.neutralPier)
-  dbox(brush, g, o1, g.a1, -0.02, WALL, 0, HEAD + SIGN_H, C.neutralPier)
+  const pier2 = C[sf.pilaster ?? 'neutralPier']
+  dbox(brush, g, g.a0, o0, -0.02, WALL, 0, HEAD + SIGN_H, pier2)
+  dbox(brush, g, o1, g.a1, -0.02, WALL, 0, HEAD + SIGN_H, pier2)
+  if (sf.confetti) {
+    let cs = b.id * 31 + 7
+    const rnd = () => ((cs = (cs * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff)
+    for (const [p0, p1] of [[g.a0, o0], [o1, g.a1]]) {
+      for (let k = 0; k < 14; k++) {
+        const at = p0 + rnd() * Math.max(0.3, p1 - p0 - 0.25)
+        const y = 0.6 + rnd() * (HEAD + SIGN_H - 1.2)
+        dbox(brush, g, at, at + 0.25, -0.04, 0.02, y, y + 0.25,
+          rnd() < 0.5 ? C.confetti : C.toyRed)
+      }
+    }
+  }
 
   // Cut the frontage open back to the lease line, then rebuild the closure.
   dbox(brush, g, o0, o1, -0.35, LEASE + CLOSURE + 0.4, 0, HEAD, 0)
@@ -177,10 +198,32 @@ function carveShop(brush, b, signs) {
 
   // Reveal soffit over the recess, in the tenant's accent.
   dbox(brush, g, o0, o1, 0, LEASE + CLOSURE, HEAD, HEAD + 0.25, accent)
+  for (let at = o0 + 0.7; at < o1 - 0.4; at += 1.5) {
+    dbox(brush, g, at, at + 0.3, 0.18, 0.5, HEAD, HEAD + 0.25, C.troffer)
+  }
 
   // Sign fascia between the piers, with a brass reveal beneath it.
-  dbox(brush, g, o0, o1, 0, WALL, HEAD, HEAD + SIGN_H, fascia)
-  dbox(brush, g, o0, o1, 0, 0.18, HEAD - 0.14, HEAD, C.brass)
+  if (sf.gable) {
+    // Stepped wood arch: the shopfront steps up toward the middle.
+    const steps = 4
+    for (let i = 0; i < steps; i++) {
+      const inset = ((o1 - o0) * 0.10 * i)
+      dbox(brush, g, o0 + inset, o1 - inset, 0, WALL + 0.18,
+        HEAD + i * 0.22, HEAD + (i + 1) * 0.22 + 0.02, i % 2 ? C.woodTrim : C.woodFront)
+    }
+    dbox(brush, g, o0, o1, 0, WALL + 0.2, HEAD - 0.12, HEAD, C.woodTrim)
+  } else {
+    dbox(brush, g, o0, o1, 0, WALL, HEAD, HEAD + SIGN_H, fascia)
+    dbox(brush, g, o0, o1, 0, 0.18, HEAD - 0.14, HEAD, C.brass)
+  }
+
+  if (sf.awning) {
+    // Barrel canopy projecting over the servery.
+    const prof = [[0.0, 0.30], [0.28, 0.62], [0.62, 0.86], [0.98, 0.98], [1.34, 0.86]]
+    for (const [out, hgt] of prof) {
+      dbox(brush, g, o0, o1, -out - 0.3, -out, HEAD - 0.55 + hgt * 0.5, HEAD - 0.1 + hgt * 0.5, fascia)
+    }
+  }
 
   if (b.name && !sf.noSign) {
     signs.push(sign(b.name, g, (o0 + o1) / 2, HEAD + SIGN_H / 2, -0.06,
@@ -192,6 +235,13 @@ function carveShop(brush, b, signs) {
   }
 
   if (b.name) fitOut(brush, g, sf, back, fascia, accent)
+
+  // And keep the walk-in itself clear of whatever the fit-out just placed.
+  if (sf.glazing !== 'papered') {
+    const mid = (o0 + o1) / 2
+    const half = Math.min(1.6, (o1 - o0) / 2 - 0.2)
+    if (half > 0.5) dbox(brush, g, mid - half, mid + half, LEASE + CLOSURE + 0.1, 3.6, 0, HEAD, 0)
+  }
 
   if (!b.name) leaseCard(brush, g, (o0 + o1) / 2, signs)
 }
@@ -331,6 +381,8 @@ function fitOut(brush, g, sf, back, fascia, accent) {
   const d1 = back - 0.35
   if (width < 2.2 || d1 < 2.8) return
 
+  if (sf.arcade) { arcade(brush, g, a0, a1, d1); return }
+
   const shelf = (aa0, aa1, dd0, dd1, top = 2.1) => {
     dbox(brush, g, aa0, aa1, dd0, dd1, 0, 0.35, C.shelfBack)
     dbox(brush, g, aa0, aa1, dd0, dd1, 0.35, top, C.shelfWhite)
@@ -373,6 +425,52 @@ function fitOut(brush, g, sf, back, fascia, accent) {
         }
       }
       counter(a0 + 0.6, Math.min(a0 + 2.2, a1 - 0.4), d1 - 1.05)
+
+      if (sf.towers) {
+        // Round shoe towers, stacked white, right inside the opening.
+        for (let i = 0; i < 3; i++) {
+          const at = a0 + 1.0 + ((width - 2.0) * (i + 0.5)) / 3
+          const [cx, cz] = g.horiz
+            ? [at, g.mall + g.dir * (1.8 + (i % 2) * 0.9)]
+            : [g.mall + g.dir * (1.8 + (i % 2) * 0.9), at]
+          brush.box(cx - 0.6, 0, cz - 0.6, cx + 0.6, 0.3, cz + 0.6, accent)
+          for (let k = 0; k < 4; k++) {
+            const h = 0.55 - k * 0.11
+            const y = 0.3 + k * 0.36
+            brush.box(cx - h, y, cz - h, cx + h, y + 0.26, cz + h, C.shoeWall)
+            brush.box(cx - h - 0.03, y + 0.26, cz - h - 0.03, cx + h + 0.03, y + 0.36, cz + h + 0.03, accent)
+          }
+        }
+      }
+
+      if (sf.books) {
+        // Tables of stock pushed out to the lease line, spinner racks behind.
+        for (let i = 0; i < 3; i++) {
+          const at = a0 + 0.9 + ((width - 1.8) * (i + 0.5)) / 3
+          dbox(brush, g, at - 0.7, at + 0.7, 1.2, 2.2, 0, 0.78, C.woodTable)
+          dbox(brush, g, at - 0.74, at + 0.74, 1.16, 2.24, 0.78, 0.9, C.merchWarm)
+          dbox(brush, g, at - 0.6, at + 0.6, 1.3, 2.1, 0.9, 1.05, C.apparelPlum)
+        }
+        for (let d = 3.0; d < d1 - 1.0; d += 2.4) {
+          for (const at of [a0 + 0.9, a1 - 0.9]) {
+            dbox(brush, g, at - 0.3, at + 0.3, d, d + 0.6, 0, 1.7, C.rackMetal)
+            dbox(brush, g, at - 0.36, at + 0.36, d - 0.04, d + 0.64, 0.5, 1.55, C.bookGreen)
+          }
+        }
+        // Yellow sale cards hung in the opening.
+        for (let i = 0; i < 4; i++) {
+          const at = a0 + 0.5 + ((width - 1.0) * i) / 3
+          dbox(brush, g, at - 0.28, at + 0.28, 0.9, 0.96, 2.15, 2.75, C.saleYellow)
+        }
+      }
+
+      if (sf.banners) {
+        // Sale banners strung across the ceiling.
+        for (let d = 2.2; d < d1 - 0.6; d += 2.0) {
+          dbox(brush, g, a0, a1, d, d + 0.1, 2.55, 3.05,
+            (Math.round(d * 10) % 2) ? C.saleYellow : C.toyRed)
+        }
+      }
       break
     }
 
@@ -481,6 +579,19 @@ function carveAnchor(brush, a, signs) {
 
   fitOutAnchor(brush, a, signs)
 
+  // Clear a lead-in from the mall doors: shelving and racks were being laid
+  // straight across the entrance.
+  const lead = 9
+  const gap = w + 1.5
+  const leadIn = {
+    S: [mAt(e) - gap, r.z1 - t - lead, mAt(e) + gap, r.z1 - t + 0.5],
+    N: [mAt(e) - gap, r.z0 + t - 0.5, mAt(e) + gap, r.z0 + t + lead],
+    E: [r.x1 - t - lead, mAt(e) - gap, r.x1 - t + 0.5, mAt(e) + gap],
+    W: [r.x0 + t - 0.5, mAt(e) - gap, r.x0 + t + lead, mAt(e) + gap],
+  }[e.face]
+  brush.clear(leadIn[0], 0, leadIn[1], leadIn[2], H.anchorCeil, leadIn[3])
+  brush.slab(leadIn[0], leadIn[1], leadIn[2], leadIn[3], -0.25, () => C.deptAisle)
+
   // Rooftop plant so the anchors read as anchors from the parking lot.
   brush.box(r.x0 + 6, ANCHOR_ROOF, r.z0 + 6, r.x0 + 14, ANCHOR_ROOF + 1.4, r.z0 + 12, C.roofUnit)
 }
@@ -488,6 +599,32 @@ function carveAnchor(brush, a, signs) {
 // Entry position is stored in scan pixels along the entry axis.
 function mAt(e) {
   return e.face === 'E' || e.face === 'W' ? mz(e.at) : mx(e.at)
+}
+
+// The arcade: a dark carpeted room whose only light is the cabinets.
+function arcade(brush, g, a0, a1, d1) {
+  const glows = [C.arcadeGlowA, C.arcadeGlowB, C.arcadeGlowC]
+  let i = 0
+  const cabinet = (at, d, facing) => {
+    dbox(brush, g, at - 0.36, at + 0.36, d, d + 0.8, 0, 1.85, C.arcadeCab)
+    const glow = glows[i++ % glows.length]
+    // Screen on the aisle side, marquee above it.
+    const sd = facing > 0 ? d + 0.78 : d - 0.02
+    dbox(brush, g, at - 0.3, at + 0.3, sd, sd + 0.06, 0.95, 1.45, glow)
+    dbox(brush, g, at - 0.34, at + 0.34, d - 0.03, d + 0.83, 1.6, 1.85, glow)
+  }
+
+  // Two rows facing the centre aisle, plus a back row along the wall.
+  for (let at = a0 + 0.6; at < a1 - 0.6; at += 0.95) {
+    cabinet(at, 1.6, +1)
+    if (d1 > 6) cabinet(at, d1 - 2.4, -1)
+  }
+  for (let d = 3.4; d < d1 - 3.2; d += 0.95) {
+    dbox(brush, g, a0, a0 + 0.8, d, d + 0.72, 0, 1.85, C.arcadeCab)
+    dbox(brush, g, a0 + 0.78, a0 + 0.84, d + 0.06, d + 0.66, 0.95, 1.45, glows[i++ % glows.length])
+  }
+  // Change machine by the door.
+  dbox(brush, g, a1 - 1.0, a1 - 0.3, 1.4, 2.0, 0, 1.6, C.craftsmanRed)
 }
 
 // --- Department store fit-out ---------------------------------------------
@@ -704,10 +841,22 @@ function perimeterShelving(brush, x0, z0, x1, z1) {
 
 // --- Restrooms / mall office ---------------------------------------------
 
-function carveService(brush, s) {
+function carveService(brush, s, signs) {
   const r = s.at
   brush.clear(r.x0 + 0.3, 0, r.z0 + 0.3, r.x1 - 0.3, H.storeCeil, r.z1 - 0.3)
   brush.slab(r.x0, r.z0, r.x1, r.z1, -0.25, () => C.tileGrey)
+
+  if (s.id !== 'R/T') return
+  // The directory calls these "Public Restrooms and Telephones", so give them
+  // the telephones: a bank on the corridor wall beside the door.
+  const wide = r.x1 - r.x0 >= r.z1 - r.z0
+  payphones(brush, wide ? (r.x0 + r.x1) / 2 : r.x0 - 0.25,
+                   wide ? r.z0 - 0.25 : (r.z0 + r.z1) / 2, wide)
+  signs.push({
+    text: 'RESTROOMS',
+    x: (r.x0 + r.x1) / 2, y: 2.5, z: r.z0 - 0.1,
+    rotY: Math.PI, width: 1.6,
+  })
 }
 
 // --- 5. Floors ------------------------------------------------------------
@@ -859,6 +1008,11 @@ function concourseFurniture(brush) {
         const b = side ? (wide ? r.z1 : r.x1) - inset : (wide ? r.z0 : r.x0) + inset
         if (!occupied(wide ? a : b, wide ? b : a, 1.0)) {
           column(brush, wide ? a : b, wide ? b : a)
+          if (n % 2 === side) {
+            const bx = wide ? a + 1.3 : b
+            const bz = wide ? b : a + 1.3
+            trashBin(brush, bx, bz)
+          }
         }
       }
 
@@ -929,6 +1083,25 @@ function kiddieRides(brush, x, z, wide) {
     brush.box(cx - 0.14, 0.86, cz - 0.14, cx + 0.14, 1.06, cz + 0.14, colours[(i + 1) % 3])
     brush.box(cx - 0.44, 0.2, cz - 0.34, cx - 0.3, 0.4, cz - 0.2, C.chairBlack)
     brush.box(cx + 0.3, 0.2, cz + 0.2, cx + 0.44, 0.4, cz + 0.34, C.chairBlack)
+  }
+}
+
+// The chrome cylinder bin with the ashtray top, parked at every pier.
+function trashBin(brush, x, z) {
+  brush.column(x, z, 0.34, 0, 0.9, C.chrome)
+  brush.ring(x, z, 0.36, 0.22, 0.9, 1.0, C.chromeDark)
+  brush.column(x, z, 0.24, 0.9, 0.96, C.chromeDark)
+}
+
+// A bank of payphones on the wall outside the restrooms.
+function payphones(brush, x, z, wide, n = 3) {
+  for (let i = 0; i < n; i++) {
+    const cx = wide ? x + (i - (n - 1) / 2) * 0.75 : x
+    const cz = wide ? z : z + (i - (n - 1) / 2) * 0.75
+    const [hx, hz] = wide ? [0.3, 0.16] : [0.16, 0.3]
+    brush.box(cx - hx, 1.0, cz - hz, cx + hx, 1.85, cz + hz, C.phoneBlue)
+    brush.box(cx - hx + 0.06, 1.5, cz - hz - 0.04, cx + hx - 0.06, 1.72, cz + hz + 0.04, C.chrome)
+    brush.box(cx - 0.07, 0.75, cz - 0.07, cx + 0.07, 1.0, cz + 0.07, C.chromeDark)
   }
 }
 

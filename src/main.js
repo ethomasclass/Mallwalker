@@ -66,6 +66,10 @@ requestAnimationFrame(() => {
       [C.ceilingGrid]:  [0.24, 0.23, 0.21],
       [C.ceilingCove]:  [0.95, 0.90, 0.78],
       [C.signLight]:    [0.35, 0.33, 0.28],
+      [C.backlit]:      [0.70, 0.66, 0.56],   // lit cosmetics back units
+      [C.arcadeGlowA]:  [0.30, 0.85, 1.15],   // the arcade lights itself
+      [C.arcadeGlowB]:  [1.05, 0.32, 0.55],
+      [C.arcadeGlowC]:  [1.05, 0.85, 0.28],
     },
   }).build()
   const tLight = performance.now() - t1
