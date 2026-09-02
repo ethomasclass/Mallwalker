@@ -71,6 +71,13 @@ const HEX = {
   vsPink:         0xE8A0B8,
   vsCream:        0xF6EFE6,
 
+  // --- Entrances ----------------------------------------------------------
+  daylight:       0xF2F6FF,
+  doorGlass:      0xC4DCE6,
+  doorFrame:      0x4A4237,
+  entryMat:       0x2E2C2A,
+  sidewalk:       0xB9B4AA,
+
   // --- Concourse fittings -------------------------------------------------
   chrome:         0xB9BCC0,
   chromeDark:     0x7E8388,

@@ -86,6 +86,18 @@ light through open space on a 1 m grid; meshing samples it per vertex. Solid
 cells hold no light, so creases and undersides shade themselves — ambient
 occlusion falls out of the same pass. Nothing is lit at runtime.
 
+**The mall has three public doors**, and they are where the map says: the
+spurs that run south to the exterior wall, chamfered at their ends, with
+Customer Service standing at the head of the middle one exactly as the
+brochure describes. The doors stay shut — the glazing is solid, so the shell
+is still sealed — but the glass is thin enough that its light cell stays open,
+so daylight floods up the spur. The mall's real hours are on the glass.
+
+Add `?time=morning`, `evening` or `night`. With no windows but the doors and
+the court skylight, the time of day reads almost entirely as how much light
+comes through those two openings — at night the mall is lit only by its own
+fixtures.
+
 **Sound is synthesised**, so the whole mall still ships as one file: an HVAC
 bed, the fountain when you are near it, muzak leaking out of Camelot, and
 footsteps in a room whose reverb opens up as the ceiling does. **M** mutes.

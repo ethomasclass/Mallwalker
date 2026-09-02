@@ -118,14 +118,14 @@ export const CORRIDORS = [
   { id: 'main',       rect: R(512, 606, 1090, 654) }, // Parisian <-> Castner Knott 400
   { id: 'court',      rect: R(556, 588, 644, 654) },  // fountain court at the junction
   { ceilH: 4.8, id: 'jcp-spur',   rect: R(1004, 452, 1038, 606) },// N-S up to JCPenney
-  { ceilH: 4.4, id: 'sw-pocket',  rect: R(578, 654, 604, 745) },  // 472-488 pocket
+  { ceilH: 4.4, id: 'sw-pocket',  rect: R(578, 654, 604, 745), entrance: 'S' },
   // The 2000 map draws ONE spur running south off the concourse, with CVS and
   // 444 on its west side and 436/438/440 on its east. Kiosk C stands at its
   // head.
-  { ceilH: 4.4, id: 'south-spur', rect: R(796, 654, 820, 772) },
+  { ceilH: 4.4, id: 'south-spur', rect: R(796, 654, 820, 772), entrance: 'S', main: true },
   // Morrison's is a cafeteria reached down a narrow neck between 434 and 430.
   { ceilH: 4.4, id: 'morrisons',  rect: R(876, 654, 894, 712) },
-  { ceilH: 4.4, id: 'se-recess',  rect: R(998, 654, 1018, 772) }, // 412 / 416 recess
+  { ceilH: 4.4, id: 'se-recess',  rect: R(998, 654, 1018, 772), entrance: 'S' },
   { ceilH: 4.4, id: 'ck200-entry',rect: R(746, 570, 768, 606) },  // vestibule into Castner Knott 200
 ]
 

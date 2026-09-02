@@ -10,8 +10,8 @@ import { signInk, storefront } from './tenants.js'
 import { ACCENTS, DEPARTMENTS, FLOORS } from './anchors.js'
 import { VOXEL, WALL } from './config.js'
 import {
-  ANCHORS, BAYS, CAROUSEL, CORRIDORS, DIRECTORY_BOARDS, FOOTPRINT, FOUNTAIN, H,
-  KIOSK_SIZE, KIOSKS, mx, mz, OUTPARCELS, RESTROOMS, TEMP_TENANTS,
+  ANCHORS, BAYS, CAROUSEL, COLLAR, CORRIDORS, DIRECTORY_BOARDS, FOOTPRINT, FOUNTAIN,
+  H, KIOSK_SIZE, KIOSKS, mx, mz, OUTPARCELS, RESTROOMS, TEMP_TENANTS,
 } from './plan.js'
 import { SEASON } from './season.js'
 
@@ -37,6 +37,7 @@ export function buildMall(world, brush) {
   temporaryTenants(brush, signs)
   DIRECTORY_BOARDS.forEach((b) => directoryBoard(brush, b, boards))
   exteriorSkin(world, brush)
+  CORRIDORS.filter((c) => c.entrance).forEach((c) => mallEntrance(brush, c, signs))
   OUTPARCELS.forEach((o) => outparcel(brush, o, signs))
 
   return { signs, boards }
@@ -1179,6 +1180,76 @@ function fountainCourt(brush) {
     const a = (i / 6) * Math.PI * 2 + 0.4
     bench(brush, x + Math.cos(a) * (r + 2.6), z + Math.sin(a) * (r + 2.6), i % 2 === 0)
   }
+}
+
+// --- Mall entrances -------------------------------------------------------
+//
+// The spurs that run south to the exterior wall are the mall's public doors.
+// The 2000 map chamfers their ends, and Customer Service stands at the head of
+// the middle one, which is exactly where the brochure says to find it.
+//
+// The doors stay shut: the glazing is solid, so the shell is still sealed and
+// you cannot walk out into an unfinished parking lot. The light comes through
+// anyway — the glass is thin enough that its light cell stays open, so the
+// daylight floods up the spur.
+
+const ENTRY_H = 3.1        // door and sidelight height
+const TRANSOM_H = 4.1      // top of the glazed screen
+
+function mallEntrance(brush, c, signs) {
+  const r = c.rect
+  // Only south-facing entrances exist on this building.
+  const zOuter = r.z1 + COLLAR
+  const zGlass = zOuter - 0.25
+  const cx = (r.x0 + r.x1) / 2
+
+  // Cut the vestibule through the collar, then glaze its outer face.
+  brush.clear(r.x0, 0, r.z1 - 0.1, r.x1, TRANSOM_H, zOuter + 0.01)
+  brush.slab(r.x0, r.z1 - 0.1, r.x1, zOuter, -0.25, () => C.entryMat)
+
+  brush.box(r.x0, 0, zGlass, r.x1, TRANSOM_H, zOuter, C.daylight)
+  brush.box(r.x0, 0, zGlass, r.x1, 0.28, zOuter, C.doorFrame)              // kick
+  brush.box(r.x0, ENTRY_H - 0.16, zGlass - 0.02, r.x1, ENTRY_H + 0.06, zOuter + 0.02, C.doorFrame)
+  brush.box(r.x0, TRANSOM_H - 0.2, zGlass - 0.02, r.x1, TRANSOM_H, zOuter + 0.02, C.doorFrame)
+
+  // Vertical mullions, and a jamb either side.
+  for (let x = r.x0; x <= r.x1 + 0.01; x += 1.15) {
+    brush.box(x - 0.09, 0, zGlass - 0.02, x + 0.09, TRANSOM_H, zOuter + 0.02, C.doorFrame)
+  }
+  brush.box(r.x1 - 0.12, 0, zGlass - 0.02, r.x1, TRANSOM_H, zOuter + 0.02, C.doorFrame)
+
+  // A pair of leaves in the middle, with push bars.
+  for (const side of [-1, 1]) {
+    const d0 = cx + side * 0.06
+    const d1 = cx + side * 0.96
+    brush.box(Math.min(d0, d1), 0, zGlass, Math.max(d0, d1), ENTRY_H, zOuter, C.doorGlass)
+    brush.box(Math.min(d0, d1), 0, zGlass - 0.03, Math.max(d0, d1), 0.1, zOuter + 0.03, C.doorFrame)
+    brush.box(Math.min(d0, d1) + 0.06, 1.0, zGlass - 0.07, Math.max(d0, d1) - 0.06, 1.14, zGlass - 0.01, C.chrome)
+  }
+
+  // Daylight source. Thin, so its light cell stays open and the flood carries
+  // it back up the corridor.
+  brush.box(r.x0 + 0.12, 0.3, zOuter, r.x1 - 0.12, TRANSOM_H - 0.22, zOuter + 0.25, C.daylight)
+
+  // Canopy and apron outside, so the doorway reads as a way in.
+  brush.box(r.x0 - 1.6, TRANSOM_H, zOuter, r.x1 + 1.6, TRANSOM_H + 0.45, zOuter + 3.2, C.roof)
+  brush.box(r.x0 - 1.6, TRANSOM_H - 0.2, zOuter + 3.0, r.x1 + 1.6, TRANSOM_H, zOuter + 3.2, C.exteriorTrim)
+  for (const x of [r.x0 - 1.3, r.x1 + 1.1]) {
+    brush.box(x, 0, zOuter + 2.7, x + 0.25, TRANSOM_H, zOuter + 2.95, C.exteriorTrim)
+  }
+  brush.box(r.x0 - 3, -0.3, zOuter, r.x1 + 3, 0, zOuter + 6, C.sidewalk)
+
+  signs.push({
+    text: c.main ? 'COLONIAL MALL' : 'MALL ENTRANCE',
+    x: cx, y: TRANSOM_H + 0.22, z: zOuter + 3.24, rotY: 0,
+    width: (r.x1 - r.x0) + 2.4,
+  })
+  // The hours, on the glass, from the 2000 brochure.
+  signs.push({
+    text: 'MON-SAT 10-9   SUN 1-5:30',
+    x: r.x0 + 1.4, y: 1.95, z: zGlass - 0.05, rotY: Math.PI, width: 1.5,
+    ink: '#2b2a26',
+  })
 }
 
 // --- Carousel -------------------------------------------------------------

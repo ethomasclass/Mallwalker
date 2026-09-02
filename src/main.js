@@ -4,7 +4,7 @@ import { VoxelWorld } from './engine/VoxelWorld.js'
 import { Brush } from './engine/Brush.js'
 import { meshChunk } from './engine/greedyMesher.js'
 import { LightGrid } from './engine/LightGrid.js'
-import { C, palette, SKY_HEX } from './engine/palette.js'
+import { C, palette } from './engine/palette.js'
 import { VOXEL } from './game/config.js'
 import { buildMall } from './game/buildMall.js'
 import { Player, Input } from './game/Player.js'
@@ -13,6 +13,7 @@ import { ANCHORS, BAYS, CORRIDORS, FOUNTAIN, KIOSKS, RESTROOMS, SPAWN } from './
 import { drawDirectory, markYouAreHere } from './game/directoryMap.js'
 import { MallAudio } from './game/audio.js'
 import { SEASON_LABEL } from './game/season.js'
+import { LIGHT, TIME } from './game/timeOfDay.js'
 
 // --- Scene ----------------------------------------------------------------
 
@@ -23,8 +24,8 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, TOUCH ? 1.5 : 2))
 renderer.setSize(innerWidth, innerHeight)
 
 const scene = new THREE.Scene()
-scene.background = new THREE.Color(SKY_HEX)
-scene.fog = new THREE.Fog(SKY_HEX, 90, 320)
+scene.background = new THREE.Color(LIGHT.sky)
+scene.fog = new THREE.Fog(LIGHT.sky, LIGHT.fog[0], LIGHT.fog[1])
 
 const camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.05, 900)
 
@@ -46,7 +47,8 @@ const loading = document.getElementById('loading')
 const startBtn = document.getElementById('start')
 const overlay = document.getElementById('overlay')
 
-document.querySelector('.eyebrow').textContent = `Decatur, Alabama \u00b7 ${SEASON_LABEL}`
+document.querySelector('.eyebrow').textContent =
+  `Decatur, Alabama \u00b7 ${SEASON_LABEL} \u00b7 ${LIGHT.label}`
 
 requestAnimationFrame(() => {
   const t0 = performance.now()
@@ -61,7 +63,8 @@ requestAnimationFrame(() => {
     emitters: {
       [C.ceilingLight]: [1.30, 1.22, 1.02],   // lit ceiling soffits
       [C.troffer]:      [1.45, 1.40, 1.24],   // fluorescent troffers
-      [C.skylight]:     [1.15, 1.30, 1.55],   // daylight over the court
+      [C.skylight]:     LIGHT.skylight,        // daylight over the court
+      [C.daylight]:     LIGHT.entrance,        // daylight through the doors
       [C.ceiling]:      [0.30, 0.29, 0.26],   // the tile between the fixtures
       [C.ceilingGrid]:  [0.24, 0.23, 0.21],
       [C.ceilingCove]:  [0.95, 0.90, 0.78],
