@@ -83,6 +83,17 @@ the map by eye.
 `artifact/mallwalker.html` (~485 KB) with the bundle and stylesheet inlined —
 nothing is fetched at runtime but the webfont, which has a real fallback stack.
 
+### Checking the shell
+
+```
+node tools/leaktest.mjs
+```
+
+Floods air inward from outside the building and reports anywhere it reaches
+interior space. Run it after any change to `plan.js` — a corridor extended to
+the edge of its envelope block carves away its own end wall, and the hole is
+invisible until you walk into it.
+
 ### Checking a change
 
 ```

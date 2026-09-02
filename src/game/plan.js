@@ -86,7 +86,7 @@ const bay = (id, rect, face) => ({ id, face, ...rect, name: TENANTS[id] ?? null 
 export const ANCHORS = [
   { id: 100, name: 'Sears',    rect: R(483, 158, 690, 332), entry: { face: 'S', at: 592 } },
   { id: 500, name: 'Parisian', rect: R(340, 415, 512, 755), entry: { face: 'E', at: 628 } },
-  { id: 200, name: 'Castner Knott — Men & Children', rect: R(715, 430, 885, 570), entry: { face: 'S', at: 800 } },
+  { id: 200, name: 'Castner Knott — Men & Children', rect: R(715, 430, 885, 570), entry: { face: 'S', at: 757, half: 3.2 } },
   { id: 300, name: 'JCPenney', rect: R(940, 237, 1090, 452), entry: { face: 'S', at: 1022 } },
   { id: 400, name: 'Castner Knott', rect: R(1090, 545, 1268, 748), entry: { face: 'W', at: 628 } },
 ]
@@ -108,6 +108,7 @@ export const CORRIDORS = [
   { id: 'south-court',rect: R(780, 654, 806, 772) },  // down to Revco / AmSouth
   { id: 'food-spur',  rect: R(878, 654, 900, 772) },  // down to the cafeteria
   { id: 'se-recess',  rect: R(976, 654, 1000, 772) }, // 402-420 recess
+  { id: 'ck200-entry',rect: R(746, 570, 768, 606) },  // vestibule into Castner Knott 200
 ]
 
 // --- Inline bays ----------------------------------------------------------
@@ -138,7 +139,6 @@ export const BAYS = [
   bay(152, R(672, 570, 698, 606), 'S'),
   bay(154, R(698, 570, 722, 606), 'S'),
   bay(158, R(722, 570, 746, 606), 'S'),
-  bay(160, R(746, 570, 768, 606), 'S'),
   bay(162, R(768, 570, 790, 606), 'S'),
   bay(164, R(790, 570, 814, 606), 'S'),
   bay(166, R(814, 570, 844, 606), 'S'),
@@ -256,4 +256,19 @@ export const ENVELOPE = [
   R(806, 654, 1000, 700),  // south-east run
   R(820, 700, 966, 772),   // cafeteria block
   R(940, 654, 1082, 772),  // south-east corner
+]
+
+// Corridors are carved out of the envelope, so a corridor whose rect *is* an
+// envelope block would remove its own walls and open to the sky wherever no
+// neighbouring block happens to abut it. Filling a collar around every
+// corridor gives each one a wall of its own.
+export const COLLAR = 1.2
+
+const grow = (r, m) => ({ x0: r.x0 - m, z0: r.z0 - m, x1: r.x1 + m, z1: r.z1 + m })
+
+// Every rect the building occupies in plan: used to fill the solid mass, lay
+// the floor slab, skin the exterior and deck the roof.
+export const FOOTPRINT = [
+  ...ENVELOPE,
+  ...CORRIDORS.map((c) => grow(c.rect, COLLAR)),
 ]

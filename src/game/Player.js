@@ -7,6 +7,7 @@ const RADIUS = 0.32
 const HEIGHT = 1.78
 const EYE = 1.64
 const STEP = 0.36
+const EPS = 1e-4
 
 const WALK = 1.55       // an unhurried lap of the concourse
 const POWER = 3.4       // shift: mall-walker pace
@@ -32,15 +33,35 @@ export class Player {
     )
   }
 
-  // Does the player capsule (approximated as a box) intersect anything here?
+  // Does the player box intersect anything here?
+  //
+  // EPS shrinks the box a hair on every face. Without it, a player resting
+  // exactly on a voxel top reads as intersecting the voxel below and gets
+  // shoved up a frame later. It must stay far smaller than the sink-per-frame
+  // gravity produces, or the feet float above the floor and the ground test
+  // never latches.
   blocked(x, y, z) {
-    const x0 = Math.floor((x - RADIUS) / VOXEL), x1 = Math.floor((x + RADIUS) / VOXEL)
-    const z0 = Math.floor((z - RADIUS) / VOXEL), z1 = Math.floor((z + RADIUS) / VOXEL)
-    const y0 = Math.floor((y + 0.05) / VOXEL), y1 = Math.floor((y + HEIGHT - 0.05) / VOXEL)
+    const x0 = Math.floor((x - RADIUS + EPS) / VOXEL), x1 = Math.floor((x + RADIUS - EPS) / VOXEL)
+    const z0 = Math.floor((z - RADIUS + EPS) / VOXEL), z1 = Math.floor((z + RADIUS - EPS) / VOXEL)
+    const y0 = Math.floor((y + EPS) / VOXEL), y1 = Math.floor((y + HEIGHT - EPS) / VOXEL)
     for (let iz = z0; iz <= z1; iz++)
       for (let iy = y0; iy <= y1; iy++)
         for (let ix = x0; ix <= x1; ix++)
           if (this.world.isSolid(ix, iy, iz)) return true
+    return false
+  }
+
+  // Solid directly beneath the feet? Used to keep `onGround` latched while
+  // standing still, so gravity never gets a frame to nudge the camera.
+  grounded() {
+    const y = Math.floor((this.pos.y - EPS) / VOXEL)
+    const x0 = Math.floor((this.pos.x - RADIUS + EPS) / VOXEL)
+    const x1 = Math.floor((this.pos.x + RADIUS - EPS) / VOXEL)
+    const z0 = Math.floor((this.pos.z - RADIUS + EPS) / VOXEL)
+    const z1 = Math.floor((this.pos.z + RADIUS - EPS) / VOXEL)
+    for (let iz = z0; iz <= z1; iz++)
+      for (let ix = x0; ix <= x1; ix++)
+        if (this.world.isSolid(ix, y, iz)) return true
     return false
   }
 
@@ -66,15 +87,25 @@ export class Player {
     this.vel.z += (fz * speed - this.vel.z) * k
 
     if (input.jump && this.onGround) { this.vel.y = JUMP; this.onGround = false }
-    this.vel.y -= GRAVITY * dt
+
+    // Standing on solid ground: hold the player exactly on the surface rather
+    // than letting gravity sink them a few millimetres every frame and
+    // snapping them back, which reads as a shaking camera.
+    if (this.onGround && this.vel.y <= 0 && this.grounded()) {
+      this.vel.y = 0
+      this.pos.y = Math.round(this.pos.y / VOXEL) * VOXEL
+    } else {
+      this.vel.y -= GRAVITY * dt
+    }
 
     this.moveAxis('x', this.vel.x * dt)
     this.moveAxis('z', this.vel.z * dt)
     this.moveY(this.vel.y * dt)
+    if (!this.onGround && this.vel.y <= 0 && this.grounded()) this.onGround = true
 
     const moving = Math.hypot(this.vel.x, this.vel.z)
     this.bob += moving * dt * 2.6
-    const bobY = this.onGround ? Math.sin(this.bob * 2) * 0.022 * Math.min(1, moving) : 0
+    const bobY = this.onGround ? Math.sin(this.bob * 2) * 0.011 * Math.min(1, moving) : 0
 
     this.camera.position.set(this.pos.x, this.pos.y + EYE + bobY, this.pos.z)
     this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ')
@@ -86,9 +117,17 @@ export class Player {
     this.pos[axis] = before + d
     if (!this.blocked(this.pos.x, this.pos.y, this.pos.z)) return
 
-    // Try stepping up onto whatever is in the way.
+    // Try stepping up onto whatever is in the way, then settle onto the top of
+    // the step instead of hanging above it.
     if (this.onGround && !this.blocked(this.pos.x, this.pos.y + STEP, this.pos.z)) {
+      const floorY = this.pos.y
       this.pos.y += STEP
+      for (let i = 0; i < Math.ceil(STEP / VOXEL); i++) {
+        const lower = this.pos.y - VOXEL
+        if (lower < floorY || this.blocked(this.pos.x, lower, this.pos.z)) break
+        this.pos.y = lower
+      }
+      this.pos.y = Math.round(this.pos.y / VOXEL) * VOXEL
       return
     }
     this.pos[axis] = before
@@ -104,7 +143,7 @@ export class Player {
     }
     if (d < 0) {
       // Settle onto the voxel top we just crossed.
-      this.pos.y = (Math.floor(this.pos.y / VOXEL) + 1) * VOXEL
+      this.pos.y = Math.ceil(this.pos.y / VOXEL) * VOXEL
       this.onGround = true
     } else {
       this.pos.y = Math.floor((this.pos.y + HEIGHT) / VOXEL) * VOXEL - HEIGHT - 0.001

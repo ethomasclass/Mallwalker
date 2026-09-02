@@ -8,7 +8,7 @@
 import { C } from '../engine/palette.js'
 import { VOXEL, WALL } from './config.js'
 import {
-  ANCHORS, BAYS, CORRIDORS, ENVELOPE, FOUNTAIN, H, KIOSK_SIZE, KIOSKS, mx, mz,
+  ANCHORS, BAYS, CORRIDORS, FOOTPRINT, FOUNTAIN, H, KIOSK_SIZE, KIOSKS, mx, mz,
   OUTPARCELS, RESTROOMS,
 } from './plan.js'
 
@@ -39,10 +39,10 @@ export function buildMall(world, brush) {
 
 function fillEnvelope(brush) {
   // Floor slab under everything, so carving down to y=0 always lands on tile.
-  for (const r of [...ENVELOPE, ...ANCHORS.map((a) => a.rect)]) {
+  for (const r of [...FOOTPRINT, ...ANCHORS.map((a) => a.rect)]) {
     brush.box(r.x0, -0.5, r.z0, r.x1, 0, r.z1, C.terrazzo)
   }
-  for (const r of ENVELOPE) brush.box(r.x0, 0, r.z0, r.x1, H.roof, r.z1, C.wallCream)
+  for (const r of FOOTPRINT) brush.box(r.x0, 0, r.z0, r.x1, H.roof, r.z1, C.wallCream)
   for (const a of ANCHORS) brush.box(a.rect.x0, 0, a.rect.z0, a.rect.x1, ANCHOR_ROOF, a.rect.z1, C.anchorWall)
 }
 
@@ -148,7 +148,7 @@ function carveAnchor(brush, a, signs) {
 
   // Mall entrance: a wide opening in the wall that faces the concourse.
   const e = a.entry
-  const w = 7
+  const w = e.half ?? 7
   const f = e.face === 'S'
     ? { horiz: true, a0: e.at * 0 + 0, a1: 0, w0: r.z1 - t, w1: r.z1, out: 1 }
     : null
@@ -380,7 +380,7 @@ function kiosk(brush, k, signs) {
 // brick, plus a parapet. Cheap way to get a believable exterior without
 // authoring one.
 function exteriorSkin(world, brush) {
-  const rects = [...ENVELOPE, ...ANCHORS.map((a) => a.rect)]
+  const rects = [...FOOTPRINT, ...ANCHORS.map((a) => a.rect)]
   const pad = 2
   const x0 = V(Math.min(...rects.map((r) => r.x0))) - pad
   const x1 = V(Math.max(...rects.map((r) => r.x1))) + pad
@@ -415,7 +415,7 @@ function exteriorSkin(world, brush) {
   }
 
   // Flat roof deck.
-  for (const r of ENVELOPE) brush.box(r.x0, H.roof - 0.25, r.z0, r.x1, H.roof, r.z1, C.roof)
+  for (const r of FOOTPRINT) brush.box(r.x0, H.roof - 0.25, r.z0, r.x1, H.roof, r.z1, C.roof)
   for (const a of ANCHORS) brush.box(a.rect.x0, ANCHOR_ROOF - 0.25, a.rect.z0, a.rect.x1, ANCHOR_ROOF, a.rect.z1, C.roof)
   // Re-glaze the court skylight, which the roof deck just paved over.
   const s = 8
@@ -424,7 +424,7 @@ function exteriorSkin(world, brush) {
   // Rooftop mechanical units.
   let seed = 7
   const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff)
-  for (const r of ENVELOPE) {
+  for (const r of FOOTPRINT) {
     const n = Math.max(1, Math.floor(((r.x1 - r.x0) * (r.z1 - r.z0)) / 900))
     for (let i = 0; i < n; i++) {
       const ux = r.x0 + 4 + rnd() * Math.max(1, r.x1 - r.x0 - 10)
