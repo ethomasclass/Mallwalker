@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <title>Mallwalker — River Oaks Centre</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <canvas id="view"></canvas>
+
+    <div id="crosshair"></div>
+
+    <div id="readout">
+      <div id="readout-zone">—</div>
+      <div id="readout-store"></div>
+    </div>
+
+    <div id="overlay">
+      <div class="card">
+        <h1>MALLWALKER</h1>
+        <h2>River Oaks Centre &middot; Decatur, Alabama &middot; c. 1996</h2>
+        <p id="loading">Building the mall&hellip;</p>
+        <button id="start" disabled>Enter the mall</button>
+        <ul class="controls">
+          <li><b>W A S D</b> walk</li>
+          <li><b>Mouse</b> look</li>
+          <li><b>Shift</b> power walk</li>
+          <li><b>Space</b> hop</li>
+          <li><b>Esc</b> release cursor</li>
+        </ul>
+        <ul class="controls touch-only">
+          <li><b>Left thumb</b> walk</li>
+          <li><b>Right thumb</b> look</li>
+          <li><b>RUN</b> power walk</li>
+        </ul>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

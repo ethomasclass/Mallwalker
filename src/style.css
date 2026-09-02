@@ -1,0 +1,182 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  overflow: hidden;
+  background: #0b0b0e;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #f3efe6;
+}
+
+#view { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-action: none; }
+
+#crosshair {
+  position: fixed;
+  left: 50%; top: 50%;
+  width: 4px; height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.55);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.35);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+#readout {
+  position: fixed;
+  left: 22px; bottom: 20px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+}
+#readout-zone {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+}
+#readout-store {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  min-height: 28px;
+}
+
+body.playing #crosshair, body.playing #readout { opacity: 1; }
+
+#overlay {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, #1a1a20 0%, #08080b 100%);
+  z-index: 10;
+}
+#overlay.hidden { display: none; }
+
+.card { text-align: center; max-width: 480px; padding: 40px; }
+
+.card h1 {
+  font-size: 46px;
+  letter-spacing: 0.34em;
+  font-weight: 700;
+  margin-right: -0.34em;
+}
+.card h2 {
+  margin-top: 14px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(243,239,230,0.5);
+}
+.card p { margin-top: 30px; font-size: 14px; color: rgba(243,239,230,0.65); }
+
+#start {
+  margin-top: 26px;
+  padding: 13px 30px;
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #14141a;
+  background: #e8dfd2;
+  border: 0;
+  border-radius: 2px;
+  cursor: pointer;
+}
+#start:disabled { opacity: 0.3; cursor: default; }
+#start:not(:disabled):hover { background: #fff; }
+
+.controls {
+  margin-top: 34px;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 18px;
+  font-size: 11.5px;
+  color: rgba(243,239,230,0.42);
+}
+.controls b { color: rgba(243,239,230,0.72); font-weight: 600; }
+
+/* --- Touch controls ----------------------------------------------------- */
+
+#touch { display: none; }
+body.touch.playing #touch { display: block; }
+
+#stick {
+  position: fixed;
+  width: 116px; height: 116px;
+  margin: -58px 0 0 -58px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.28);
+  background: rgba(255,255,255,0.07);
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+  touch-action: none;
+}
+#stick.on { opacity: 1; }
+#stick-knob {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.55);
+}
+
+#touch button {
+  position: fixed;
+  right: 24px;
+  width: 78px; height: 78px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  background: rgba(20,20,26,0.4);
+  color: rgba(255,255,255,0.8);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+#btn-run  { bottom: 132px; }
+#btn-jump { bottom: 36px; }
+#touch button.on {
+  background: rgba(233,223,210,0.85);
+  color: #14141a;
+  border-color: rgba(255,255,255,0.6);
+}
+
+body.touch #readout { bottom: auto; top: 18px; }
+
+@media (max-width: 720px) {
+  .card { padding: 24px; }
+  .card h1 { font-size: 30px; letter-spacing: 0.24em; margin-right: -0.24em; }
+  .controls { display: none; }
+}
+
+#btn-pause {
+  position: fixed;
+  top: 16px; right: 16px;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.28);
+  background: rgba(20,20,26,0.35);
+  color: rgba(255,255,255,0.75);
+  font: 600 13px/1 inherit;
+  letter-spacing: 0.1em;
+  display: none;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 5;
+}
+body.touch.playing #btn-pause { display: block; }
+
+.touch-only { display: none; }
+body.touch .touch-only { display: flex; }
+body.touch .controls:not(.touch-only) { display: none; }
