@@ -7,6 +7,8 @@ No shopping, no objectives. You walk the concourse.
 
 ![](public/reference/interior-court.jpg)
 
+**Play it in a browser:** https://claude.ai/code/artifact/90e8f7bd-7193-4152-9ad5-e9d53fae30e8
+
 ## Running it
 
 ```
@@ -74,6 +76,12 @@ into vertex colours, so it renders unlit and runs on a phone.
 `src/game/plan.js` is the only file you need to touch to change the layout.
 Rectangles are given in scan-pixel coordinates so they can be checked against
 the map by eye.
+
+### Packaging
+
+`node tools/build-artifact.mjs` folds `dist/` into a single self-contained
+`artifact/mallwalker.html` (~485 KB) with the bundle and stylesheet inlined —
+nothing is fetched at runtime but the webfont, which has a real fallback stack.
 
 ### Checking a change
 

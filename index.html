@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
     <meta name="mobile-web-app-capable" content="yes" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <title>Mallwalker — River Oaks Centre</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&display=swap" />
+    <title>Mallwalker</title>
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
@@ -14,22 +15,40 @@
     <div id="crosshair"></div>
 
     <div id="readout">
-      <div id="readout-zone">—</div>
+      <div id="readout-zone">&mdash;</div>
       <div id="readout-store"></div>
     </div>
 
     <div id="overlay">
       <div class="card">
-        <h1>MALLWALKER</h1>
-        <h2>River Oaks Centre &middot; Decatur, Alabama &middot; c. 1996</h2>
-        <p id="loading">Building the mall&hellip;</p>
+        <p class="eyebrow">Decatur, Alabama &middot; c.&thinsp;1996</p>
+        <h1>Mallwalker</h1>
+        <p class="sub">River&nbsp;Oaks Centre</p>
+        <div class="rule"></div>
+        <p class="lede">
+          Six anchors, seventy-five storefronts, one fountain.
+          Nothing to buy. Walk it.
+        </p>
+
         <button id="start" disabled>Enter the mall</button>
+        <p id="loading">Building the mall&hellip;</p>
+
+        <ul class="directory">
+          <li><b>100</b> Sears</li>
+          <li><b>200</b> Castner Knott</li>
+          <li><b>300</b> JCPenney</li>
+          <li><b>400</b> Castner Knott</li>
+          <li><b>500</b> Parisian</li>
+          <li><b>601</b> Cinema 8</li>
+        </ul>
+
         <ul class="controls">
           <li><b>W A S D</b> walk</li>
           <li><b>Mouse</b> look</li>
           <li><b>Shift</b> power walk</li>
           <li><b>Space</b> hop</li>
-          <li><b>Esc</b> release cursor</li>
+          <li><b>Esc</b> pause</li>
+          <li class="drag-hint"><b>Drag</b> to look, if the cursor stays visible</li>
         </ul>
         <ul class="controls touch-only">
           <li><b>Left thumb</b> walk</li>

@@ -169,9 +169,11 @@ const input = new MergedInput(...(touch ? [keyboard, touch] : [keyboard]))
 
 document.body.classList.toggle('touch', TOUCH)
 
-// Touch devices have no pointer lock: tapping Start just drops you in, and a
-// small Pause chip brings the overlay back.
+// Pointer lock is a nice-to-have, not a requirement: it can be refused
+// outright when the page is embedded in a sandboxed frame. So Start always
+// drops you in, and looking falls back to click-and-drag.
 let walking = false
+let locked = false
 
 function setWalking(on) {
   walking = on
@@ -180,23 +182,40 @@ function setWalking(on) {
   if (!on) startBtn.textContent = 'Resume walking'
 }
 
+function setLocked(on) {
+  locked = on
+  document.body.classList.toggle('unlocked', !on)
+}
+setLocked(false)
+
 startBtn.addEventListener('click', () => {
-  if (TOUCH) setWalking(true)
-  else canvas.requestPointerLock()
+  setWalking(true)
+  if (!TOUCH) canvas.requestPointerLock?.()
 })
 
-if (TOUCH) {
-  const pause = document.createElement('button')
-  pause.id = 'btn-pause'
-  pause.textContent = 'II'
-  pause.addEventListener('pointerdown', (e) => { e.stopPropagation(); setWalking(false) })
-  document.body.appendChild(pause)
-} else {
+const pause = document.createElement('button')
+pause.id = 'btn-pause'
+pause.textContent = 'II'
+pause.title = 'Pause'
+pause.addEventListener('pointerdown', (e) => { e.stopPropagation(); setWalking(false) })
+document.body.appendChild(pause)
+
+if (!TOUCH) {
   document.addEventListener('pointerlockchange', () => {
-    setWalking(document.pointerLockElement === canvas)
+    const now = document.pointerLockElement === canvas
+    if (locked && !now) setWalking(false)   // Esc out of a locked session
+    setLocked(now)
   })
-  document.addEventListener('mousemove', (e) => {
-    if (document.pointerLockElement === canvas) player.look(e.movementX, e.movementY)
+
+  let dragging = false
+  canvas.addEventListener('mousedown', () => { if (walking && !locked) dragging = true })
+  addEventListener('mouseup', () => { dragging = false })
+  addEventListener('mousemove', (e) => {
+    if (!walking || (!locked && !dragging)) return
+    player.look(e.movementX, e.movementY)
+  })
+  addEventListener('keydown', (e) => {
+    if (e.code === 'Escape' && walking && !locked) setWalking(false)
   })
 }
 

@@ -217,13 +217,13 @@ const kiosk = (id, name, px, pz) => ({
 })
 
 export const KIOSKS = [
-  kiosk('G', 'Things Remembered', 590, 630),
-  kiosk('F', 'The Cellular Shop',  672, 630),
-  kiosk('E', 'Sunglass Hut',       748, 630),
-  kiosk('D', 'Customer Service',   814, 630),
-  kiosk('C', 'Gems, Gold & More',  874, 630),
-  kiosk('B', 'Powerful Stuff',     928, 630),
-  kiosk('A', 'Pretzel Time',       980, 630),
+  kiosk('G', 'Things Remembered', 652, 630),
+  kiosk('F', 'The Cellular Shop',  702, 630),
+  kiosk('E', 'Sunglass Hut',       754, 630),
+  kiosk('D', 'Customer Service',   812, 630),
+  kiosk('C', 'Gems, Gold & More',  870, 630),
+  kiosk('B', 'Powerful Stuff',     926, 630),
+  kiosk('A', 'Pretzel Time',       982, 630),
   kiosk('H', 'Precious Jewelers',  598, 548),
 ]
 
@@ -235,8 +235,9 @@ export const RESTROOMS = [
 
 export const FOUNTAIN = { x: mx(600), z: mz(620), r: 4.5 }
 
-// Where the player starts: middle of the fountain court, facing east.
-export const SPAWN = { x: mx(620), z: mz(628), heading: Math.PI / 2 }
+// Start in the fountain court, ten metres back from the kerb and facing the
+// fountain, so the first thing you see is the room rather than the water.
+export const SPAWN = { x: mx(624), z: mz(640), heading: 0.88 }
 
 // --- Building envelope ----------------------------------------------------
 // The mall is built by filling these blocks solid and then carving corridors,

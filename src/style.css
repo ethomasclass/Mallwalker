@@ -1,14 +1,29 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* Palette taken from the building itself: the concourse tile, the mauve
+   diamond accents, the brass planter rims, and the ink of the printed
+   directory. Deliberately single-theme - it is a title card over a 3D scene,
+   so every colour is painted explicitly rather than inherited from the host. */
+:root {
+  --ink: #15110f;
+  --cream: #ede6da;
+  --mauve: #9c6870;
+  --mauve-light: #c79aa0;
+  --brass: #c7a34a;
+  --dim: rgba(237, 230, 218, 0.62);
+  --faint: rgba(237, 230, 218, 0.36);
+  --hairline: rgba(237, 230, 218, 0.14);
+}
+
 html, body {
   height: 100%;
   overscroll-behavior: none;
   -webkit-user-select: none;
   user-select: none;
   overflow: hidden;
-  background: #0b0b0e;
+  background: var(--ink);
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color: #f3efe6;
+  color: var(--cream);
 }
 
 #view { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-action: none; }
@@ -48,60 +63,128 @@ html, body {
 }
 
 body.playing #crosshair, body.playing #readout { opacity: 1; }
+body.playing.unlocked #view { cursor: grab; }
+body.playing.unlocked #view:active { cursor: grabbing; }
 
 #overlay {
   position: fixed; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  background: radial-gradient(ellipse at center, #1a1a20 0%, #08080b 100%);
+  overflow-y: auto;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 38%, #241d19 0%, #15110f 62%, #0c0908 100%);
   z-index: 10;
 }
 #overlay.hidden { display: none; }
 
-.card { text-align: center; max-width: 480px; padding: 40px; }
+.card {
+  width: min(540px, 100%);
+  padding: 56px 40px;
+  text-align: center;
+}
+
+.eyebrow {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-right: -0.3em;
+}
 
 .card h1 {
-  font-size: 46px;
+  margin-top: 18px;
+  font-family: "Cormorant Garamond", "Hoefler Text", Georgia, serif;
+  font-size: clamp(52px, 13vw, 84px);
+  font-weight: 600;
+  line-height: 0.94;
+  letter-spacing: 0.02em;
+  color: var(--cream);
+}
+
+.card .sub {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 600;
   letter-spacing: 0.34em;
-  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--mauve-light);
   margin-right: -0.34em;
 }
-.card h2 {
-  margin-top: 14px;
-  font-size: 12px;
-  font-weight: 400;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(243,239,230,0.5);
+
+.rule {
+  width: 54px; height: 1px;
+  margin: 26px auto 0;
+  background: var(--brass);
 }
-.card p { margin-top: 30px; font-size: 14px; color: rgba(243,239,230,0.65); }
+
+.lede {
+  margin: 22px auto 0;
+  max-width: 34ch;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--dim);
+}
 
 #start {
-  margin-top: 26px;
-  padding: 13px 30px;
+  margin-top: 32px;
+  padding: 14px 34px;
   font: inherit;
-  font-size: 13px;
-  letter-spacing: 0.16em;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #14141a;
-  background: #e8dfd2;
+  color: #14100f;
+  background: var(--cream);
   border: 0;
-  border-radius: 2px;
+  border-radius: 1px;
   cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
 }
-#start:disabled { opacity: 0.3; cursor: default; }
-#start:not(:disabled):hover { background: #fff; }
+#start:disabled { opacity: 0.22; cursor: default; }
+#start:not(:disabled):hover { background: #fff; transform: translateY(-1px); }
+#start:focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }
+
+#loading {
+  margin-top: 16px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: rgba(237, 230, 218, 0.24);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The anchor list, set the way the mall's own directory sets it. */
+.directory {
+  margin-top: 36px;
+  padding-top: 22px;
+  border-top: 1px solid var(--hairline);
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px 14px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--dim);
+  text-align: left;
+}
+.directory b {
+  display: inline-block;
+  min-width: 2.1em;
+  font-weight: 600;
+  color: var(--brass);
+  font-variant-numeric: tabular-nums;
+}
 
 .controls {
-  margin-top: 34px;
+  margin-top: 26px;
   list-style: none;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px 18px;
-  font-size: 11.5px;
-  color: rgba(243,239,230,0.42);
+  gap: 7px 16px;
+  font-size: 11px;
+  color: var(--faint);
 }
-.controls b { color: rgba(243,239,230,0.72); font-weight: 600; }
+.controls b { color: var(--dim); font-weight: 600; }
 
 /* --- Touch controls ----------------------------------------------------- */
 
@@ -155,9 +238,8 @@ body.touch.playing #touch { display: block; }
 body.touch #readout { bottom: auto; top: 18px; }
 
 @media (max-width: 720px) {
-  .card { padding: 24px; }
-  .card h1 { font-size: 30px; letter-spacing: 0.24em; margin-right: -0.24em; }
-  .controls { display: none; }
+  .card { padding: 40px 26px; }
+  .directory { grid-template-columns: repeat(2, 1fr); }
 }
 
 #btn-pause {
@@ -175,7 +257,8 @@ body.touch #readout { bottom: auto; top: 18px; }
   -webkit-tap-highlight-color: transparent;
   z-index: 5;
 }
-body.touch.playing #btn-pause { display: block; }
+body.touch.playing #btn-pause,
+body.playing.unlocked #btn-pause { display: block; }
 
 .touch-only { display: none; }
 body.touch .touch-only { display: flex; }
