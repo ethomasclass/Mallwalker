@@ -60,6 +60,21 @@ const HEX = {
   kioskTop:       0x4F4A46,
   carousel:       0xC9435A,
 
+  // --- Department stores --------------------------------------------------
+  carpetRose:     0x8E6E72,
+  carpetBlue:     0x4C5B72,
+  carpetTaupe:    0x8B8175,
+  carpetSand:     0xA69A88,
+  deptTile:       0xDCD8CE,
+  deptAisle:      0xE9E5DA,
+  applianceWhite: 0xEFEFEA,
+  craftsmanRed:   0xB4232B,
+  toolBlack:      0x26262A,
+  sofaBlue:       0x4E6A86,
+  woodTable:      0x8A6A46,
+  backlit:        0xF7F2E4,
+  deptSign:       0x243046,
+
   // --- Interior fittings --------------------------------------------------
   ceilingGrid:    0xD7D2C6,
   troffer:        0xFDFBF0,

@@ -76,6 +76,18 @@ in the service offices, chairs and mirrors in the salons — and a lay-in
 acoustic ceiling with fluorescent troffers that feeds the light bake, so shops
 glow through their own glass.
 
+**The anchors are merchandised.** `src/game/anchors.js` divides each of the
+five department stores into departments in normalised coordinates, laid out the
+way a 1990s department store actually planned a floor: cosmetics and fine
+jewellery on hard floor right inside the mall doors, soft goods on carpet
+behind them, hard lines and the home store furthest from the entrance. Sears
+keeps its own character — Appliances, Craftsman and Automotive along the back
+wall. The gaps between departments become the aisles, so nobody has to draw an
+aisle, and each department gets its own floor finish, its own fixtures (round
+racks and four-ways, glass cosmetics counters with lit back units, gondola
+runs, shoe benches, tall Craftsman gondolas, sofa groups) and a hanging sign on
+rods.
+
 The concourse follows the photographs in `public/reference/`: plain tile with a
 band hugging the shopfronts and the maroon runner with lighter dashes down the
 centre, tall coved and skylit ceilings over the main run, low acoustic tile
@@ -150,11 +162,12 @@ Each viewpoint is `[name, x, z, yaw, pitch]` in world metres.
 
 - **NPCs.** The point of the whole thing: other walkers to pass and talk to.
   Nothing is stubbed for them yet.
-- Anchor interiors are still empty shells.
 - The exterior is a brick skin and a flat parking lot — no cars, no entrances
   from outside, no landscaping.
 - The seasonal system only swaps carts. Centre-court decoration and window
   sale signage don't change yet.
+- 360k triangles. Fine on a desktop, and it holds up on a phone, but the
+  fixture density in the anchors is the first thing to trim if it doesn't.
 - Bay geometry is eyeballed from the scan to about ±1 m. Worth a second pass
   against the modern floorplan in `public/reference/floorplan-modern.jpg`,
   which covers the same building with cleaner outlines.

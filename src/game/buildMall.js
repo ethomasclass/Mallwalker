@@ -7,6 +7,7 @@
 
 import { C } from '../engine/palette.js'
 import { signInk, storefront } from './tenants.js'
+import { ACCENTS, DEPARTMENTS, FLOORS } from './anchors.js'
 import { VOXEL, WALL } from './config.js'
 import {
   ANCHORS, BAYS, CORRIDORS, DIRECTORY_BOARDS, FOOTPRINT, FOUNTAIN, H, KIOSK_SIZE,
@@ -385,9 +386,9 @@ function fitOut(brush, g, sf, back, fascia, accent) {
         const [cx, cz] = g.horiz
           ? [at, g.mall + g.dir * 2.5]
           : [g.mall + g.dir * 2.5, at]
-        brush.column(cx, cz, 0.09, 0, 1.45, C.rackMetal)
+        brush.box(cx - 0.11, 0, cz - 0.11, cx + 0.11, 1.45, cz + 0.11, C.rackMetal)
         brush.column(cx, cz, 0.6, 0.55, 1.3, accent)
-        brush.ring(cx, cz, 0.62, 0.5, 1.3, 1.38, C.rackMetal)
+        brush.ring(cx, cz, 0.62, 0.48, 1.3, 1.38, C.rackMetal)
       }
       if (width > 4.5) {
         mannequin(a0 + 0.9, 1.5)
@@ -446,8 +447,9 @@ function carveAnchor(brush, a, signs) {
   const r = a.rect
   const t = 0.8
   brush.clear(r.x0 + t, 0, r.z0 + t, r.x1 - t, H.anchorCeil, r.z1 - t)
-  brush.slab(r.x0 + t, r.z0 + t, r.x1 - t, r.z1 - t, -0.25, () => C.anchorFloor)
-  brush.box(r.x0 + t, H.anchorCeil, r.z0 + t, r.x1 - t, H.anchorCeil + 0.25, r.z1 - t, C.ceiling)
+  brush.slab(r.x0 + t, r.z0 + t, r.x1 - t, r.z1 - t, -0.25, () => C.deptAisle)
+  acousticCeiling(brush,
+    { x0: r.x0 + t, z0: r.z0 + t, x1: r.x1 - t, z1: r.z1 - t }, H.anchorCeil)
 
   // Sales-floor columns on a 12 m grid.
   for (let x = r.x0 + 8; x < r.x1 - 4; x += 12) {
@@ -477,6 +479,8 @@ function carveAnchor(brush, a, signs) {
   dbox(brush, sg, sg.a0, sg.a1, 0, t, HEAD + 0.6, HEAD + 0.6 + SIGN_H + 0.3, C.signBoard)
   signs.push(sign(a.name.toUpperCase(), sg, (sg.a0 + sg.a1) / 2, HEAD + 1.2, -0.06, 13, 'signBoard'))
 
+  fitOutAnchor(brush, a, signs)
+
   // Rooftop plant so the anchors read as anchors from the parking lot.
   brush.box(r.x0 + 6, ANCHOR_ROOF, r.z0 + 6, r.x0 + 14, ANCHOR_ROOF + 1.4, r.z0 + 12, C.roofUnit)
 }
@@ -484,6 +488,218 @@ function carveAnchor(brush, a, signs) {
 // Entry position is stored in scan pixels along the entry axis.
 function mAt(e) {
   return e.face === 'E' || e.face === 'W' ? mz(e.at) : mx(e.at)
+}
+
+// --- Department store fit-out ---------------------------------------------
+//
+// Departments are given in normalised coordinates (see anchors.js) and inset
+// here, so the gaps between them become the store's aisles without anyone
+// having to draw an aisle.
+
+const AISLE = 2.2          // gap left around each department
+const DEPT_SIGN_Y = 3.7
+
+function fitOutAnchor(brush, a, signs) {
+  const list = DEPARTMENTS[a.id]
+  if (!list) return
+  const r = a.rect
+  const t = 1.4
+  const x0 = r.x0 + t, x1 = r.x1 - t
+  const z0 = r.z0 + t, z1 = r.z1 - t
+  const W = x1 - x0, Dp = z1 - z0
+
+  let seed = a.id * 7919
+  const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff)
+
+  perimeterShelving(brush, x0, z0, x1, z1)
+
+  for (const d of list) {
+    const dx0 = x0 + W * d.u0 + AISLE / 2
+    const dx1 = x0 + W * d.u1 - AISLE / 2
+    const dz0 = z0 + Dp * d.v0 + AISLE / 2
+    const dz1 = z0 + Dp * d.v1 - AISLE / 2
+    if (dx1 - dx0 < 3 || dz1 - dz0 < 3) continue
+
+    brush.slab(dx0, dz0, dx1, dz1, -0.25, () => C[FLOORS[d.type]])
+    const accents = ACCENTS[d.type].map((n) => C[n])
+    department(brush, d.type, dx0, dz0, dx1, dz1, accents, rnd)
+
+    // Hanging department sign, readable from the aisle on both sides.
+    const cx = (dx0 + dx1) / 2
+    const cz = (dz0 + dz1) / 2
+    const wide = dx1 - dx0 >= dz1 - dz0
+    const w = Math.min(wide ? dx1 - dx0 : dz1 - dz0, 5) * 0.62
+    brush.box(cx - (wide ? w / 2 : 0.06), DEPT_SIGN_Y - 0.28, cz - (wide ? 0.06 : w / 2),
+              cx + (wide ? w / 2 : 0.06), DEPT_SIGN_Y + 0.28, cz + (wide ? 0.06 : w / 2), C.deptSign)
+    // Hanger rods up to the ceiling.
+    for (const f of [-0.34, 0.34]) {
+      const hx = cx + (wide ? w * f : 0), hz = cz + (wide ? 0 : w * f)
+      brush.box(hx - 0.04, DEPT_SIGN_Y + 0.28, hz - 0.04, hx + 0.04, H.anchorCeil, hz + 0.04, C.rackMetal)
+    }
+    for (const side of [-1, 1]) {
+      signs.push({
+        text: d.name.toUpperCase(),
+        x: cx + (wide ? 0 : 0.09 * side),
+        y: DEPT_SIGN_Y,
+        z: cz + (wide ? 0.09 * side : 0),
+        rotY: wide ? (side > 0 ? 0 : Math.PI) : (side > 0 ? Math.PI / 2 : -Math.PI / 2),
+        width: w * 0.92,
+      })
+    }
+  }
+}
+
+// One department's worth of fixtures. Everything is spaced generously — a
+// dense grid of racks costs a lot of triangles and reads as noise.
+function department(brush, type, x0, z0, x1, z1, accents, rnd) {
+  const pick = () => accents[Math.floor(rnd() * accents.length)]
+  const grid = (step, fn) => {
+    for (let x = x0 + step / 2; x < x1 - 0.6; x += step) {
+      for (let z = z0 + step / 2; z < z1 - 0.6; z += step) fn(x, z)
+    }
+  }
+
+  switch (type) {
+    case 'apparel':
+    case 'children': {
+      const h = type === 'children' ? 1.15 : 1.42
+      grid(5.4, (x, z) => {
+        if (rnd() < 0.28) {
+          // Four-way rack.
+          brush.box(x - 0.09, 0, z - 0.09, x + 0.09, h, z + 0.09, C.rackMetal)
+          brush.box(x - 0.7, h * 0.4, z - 0.16, x + 0.7, h * 0.95, z + 0.16, pick())
+          brush.box(x - 0.16, h * 0.4, z - 0.7, x + 0.16, h * 0.95, z + 0.7, pick())
+        } else {
+          // Round rack.
+          brush.box(x - 0.11, 0, z - 0.11, x + 0.11, h, z + 0.11, C.rackMetal)
+          brush.column(x, z, 0.62, h * 0.38, h * 0.92, pick())
+          brush.ring(x, z, 0.64, 0.5, h * 0.92, h, C.rackMetal)
+        }
+      })
+      break
+    }
+
+    case 'shoes': {
+      grid(5.8, (x, z) => {
+        brush.box(x - 1.0, 0, z - 0.28, x + 1.0, 0.38, z + 0.28, C.bench)
+        brush.box(x - 0.9, 0.38, z - 0.24, x + 0.9, 0.46, z + 0.24, C.mannequin)
+      })
+      break
+    }
+
+    case 'cosmetics': {
+      // Glass counter islands with tall lit back units — the brightest floor
+      // in the store, and always the first thing past the mall doors.
+      grid(5.0, (x, z) => {
+        brush.box(x - 1.5, 0, z - 0.55, x + 1.5, 0.95, z + 0.55, C.shelfWhite)
+        brush.box(x - 1.5, 0.95, z - 0.55, x + 1.5, 1.5, z + 0.55, C.storefrontGlass)
+        brush.box(x - 1.56, 1.5, z - 0.61, x + 1.56, 1.6, z + 0.61, C.brass)
+        brush.box(x - 1.4, 1.6, z - 0.3, x + 1.4, 2.5, z + 0.3, C.backlit)
+        brush.box(x - 1.4, 1.75, z - 0.34, x + 1.4, 2.35, z + 0.34, pick())
+      })
+      break
+    }
+
+    case 'jewelry': {
+      // A compact U of cases with staff standing inside it.
+      const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2
+      const hw = Math.min(2.6, (x1 - x0) / 2 - 0.8)
+      const hd = Math.min(2.2, (z1 - z0) / 2 - 0.8)
+      if (hw < 1 || hd < 1) break
+      for (const [ax0, az0, ax1, az1] of [
+        [cx - hw, cz - hd, cx + hw, cz - hd + 0.7],
+        [cx - hw, cz + hd - 0.7, cx + hw, cz + hd],
+        [cx - hw, cz - hd, cx - hw + 0.7, cz + hd],
+      ]) {
+        brush.box(ax0, 0, az0, ax1, 0.9, az1, C.caseFrame)
+        brush.box(ax0, 0.9, az0, ax1, 1.42, az1, C.storefrontGlass)
+        brush.box(ax0 - 0.05, 1.42, az0 - 0.05, ax1 + 0.05, 1.5, az1 + 0.05, C.brass)
+      }
+      break
+    }
+
+    case 'home': {
+      grid(4.9, (x, z) => {
+        brush.box(x - 1.4, 0, z - 0.5, x + 1.4, 0.3, z + 0.5, C.shelfBack)
+        brush.box(x - 1.4, 0.3, z - 0.5, x + 1.4, 1.65, z + 0.5, C.shelfWhite)
+        for (let y = 0.55; y < 1.55; y += 0.45) {
+          brush.box(x - 1.45, y, z - 0.54, x + 1.45, y + 0.24, z + 0.54, pick())
+        }
+      })
+      break
+    }
+
+    case 'appliance': {
+      grid(4.4, (x, z) => {
+        brush.box(x - 0.42, 0, z - 0.36, x + 0.42, 1.75, z + 0.36, C.applianceWhite)
+        brush.box(x - 0.44, 1.1, z - 0.4, x + 0.44, 1.35, z + 0.4, C.electronicsGrey)
+      })
+      break
+    }
+
+    case 'hardware': {
+      // Tall gondolas in Craftsman red and black.
+      for (let x = x0 + 1.6; x < x1 - 1.2; x += 4.0) {
+        brush.box(x - 0.55, 0, z0 + 1.0, x + 0.55, 0.3, z1 - 1.0, C.toolBlack)
+        brush.box(x - 0.55, 0.3, z0 + 1.0, x + 0.55, 2.2, z1 - 1.0, C.shelfWhite)
+        for (let y = 0.5; y < 2.1; y += 0.5) {
+          brush.box(x - 0.6, y, z0 + 1.0, x + 0.6, y + 0.26, z1 - 1.0, pick())
+        }
+      }
+      break
+    }
+
+    case 'electronics': {
+      grid(4.6, (x, z) => {
+        brush.box(x - 1.1, 0, z - 0.5, x + 1.1, 0.85, z + 0.5, C.woodTable)
+        brush.box(x - 0.9, 0.85, z - 0.4, x + 0.9, 0.92, z + 0.4, C.counterTop)
+        brush.box(x - 0.7, 0.92, z - 0.3, x + 0.7, 1.5, z + 0.3, C.toolBlack)
+        brush.box(x - 0.6, 1.02, z - 0.24, x + 0.6, 1.4, z + 0.24, C.mirror)
+      })
+      break
+    }
+
+    case 'furniture': {
+      grid(6.0, (x, z) => {
+        brush.box(x - 1.2, 0, z - 0.5, x + 1.2, 0.42, z + 0.5, C.sofaBlue)
+        brush.box(x - 1.2, 0.42, z - 0.5, x + 1.2, 0.88, z - 0.28, C.sofaBlue)
+        brush.box(x + 1.7, 0, z - 0.5, x + 2.6, 0.5, z + 0.4, C.woodTable)
+      })
+      break
+    }
+
+    case 'fitting': {
+      // A block of cubicles with a service counter in front.
+      for (let z = z0 + 0.4; z < z1 - 1.4; z += 1.4) {
+        brush.box(x0 + 0.4, 0, z, x1 - 1.6, 2.4, z + 0.14, C.shelfWhite)
+        brush.box(x1 - 1.74, 0, z + 0.14, x1 - 1.6, 2.4, z + 1.4, C.shelfWhite)
+      }
+      brush.box(x0 + 0.4, 0, z0, x1 - 1.6, 2.4, z0 + 0.14, C.shelfWhite)
+      break
+    }
+  }
+}
+
+// Wall-mounted shelving around the inside of the store, which is where a
+// department store actually puts it.
+function perimeterShelving(brush, x0, z0, x1, z1) {
+  const d = 0.5
+  const top = 2.3
+  const runs = [
+    [x0, z0, x1, z0 + d],
+    [x0, z1 - d, x1, z1],
+    [x0, z0 + d, x0 + d, z1 - d],
+    [x1 - d, z0 + d, x1, z1 - d],
+  ]
+  const bands = [C.apparelNavy, C.salonMauve, C.apparelTeal, C.merchWarm]
+  for (const [ax0, az0, ax1, az1] of runs) {
+    brush.box(ax0, 0, az0, ax1, 0.3, az1, C.shelfBack)
+    brush.box(ax0, 0.3, az0, ax1, top, az1, C.shelfWhite)
+    let i = 0
+    for (let y = 0.65; y < top - 0.35; y += 0.55, i++) {
+      brush.box(ax0, y, az0, ax1, y + 0.26, az1, bands[i % bands.length])
+    }
+  }
 }
 
 // --- Restrooms / mall office ---------------------------------------------
