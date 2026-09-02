@@ -60,8 +60,10 @@ requestAnimationFrame(() => {
     ambient: 0.24,
     emitters: {
       [C.ceilingLight]: [1.30, 1.22, 1.02],   // lit ceiling soffits
+      [C.troffer]:      [1.45, 1.40, 1.24],   // fluorescent troffers
       [C.skylight]:     [1.15, 1.30, 1.55],   // daylight over the court
-      [C.ceiling]:      [0.62, 0.59, 0.53],   // suspended ceilings, in and out
+      [C.ceiling]:      [0.30, 0.29, 0.26],   // the tile between the fixtures
+      [C.ceilingGrid]:  [0.24, 0.23, 0.21],
       [C.ceilingCove]:  [0.95, 0.90, 0.78],
       [C.signLight]:    [0.35, 0.33, 0.28],
     },

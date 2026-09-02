@@ -69,6 +69,19 @@ occlusion falls out of the same pass. Nothing is lit at runtime.
 bed, the fountain when you are near it, muzak leaking out of Camelot, and
 footsteps in a room whose reverb opens up as the ceiling does. **M** mutes.
 
+**Interiors are fitted out.** Each unit gets perimeter shelving, floor
+fixtures suited to its trade — gondola runs in the discount stores, round racks
+and mannequins in apparel, a kitchen line in the food units, a desk and chairs
+in the service offices, chairs and mirrors in the salons — and a lay-in
+acoustic ceiling with fluorescent troffers that feeds the light bake, so shops
+glow through their own glass.
+
+The concourse follows the photographs in `public/reference/`: plain tile with a
+band hugging the shopfronts and the maroon runner with lighter dashes down the
+centre, tall coved and skylit ceilings over the main run, low acoustic tile
+with troffers in the wings, glass-case kiosks, coin-op kiddie rides on a black
+mat, banner stands and A-frame sale signs.
+
 The you-are-here directories are drawn from the same plan data the world is
 built from, so the map can never disagree with the building around it.
 
@@ -137,8 +150,7 @@ Each viewpoint is `[name, x, z, yaw, pitch]` in world metres.
 
 - **NPCs.** The point of the whole thing: other walkers to pass and talk to.
   Nothing is stubbed for them yet.
-- Anchor interiors are empty shells, and shop interiors are a coloured rear
-  wall and not much else.
+- Anchor interiors are still empty shells.
 - The exterior is a brick skin and a flat parking lot — no cars, no entrances
   from outside, no landscaping.
 - The seasonal system only swaps carts. Centre-court decoration and window

@@ -100,15 +100,15 @@ export const OUTPARCELS = [
 // --- Corridors ------------------------------------------------------------
 // Carved to full concourse height; these are the walkable spine.
 export const CORRIDORS = [
-  { id: 'north',      rect: R(572, 332, 612, 606) },  // Sears wing, N-S
+  { ceilH: 4.8, id: 'north',      rect: R(572, 332, 612, 606) },  // Sears wing, N-S
   { id: 'main',       rect: R(512, 606, 1090, 654) }, // Parisian <-> Castner Knott 400
   { id: 'court',      rect: R(556, 588, 644, 654) },  // fountain court at the junction
-  { id: 'jcp-spur',   rect: R(1004, 452, 1038, 606) },// N-S up to JCPenney
-  { id: 'sw-pocket',  rect: R(578, 654, 604, 745) },  // 472-488 pocket
-  { id: 'south-court',rect: R(780, 654, 806, 772) },  // down to Revco / AmSouth
-  { id: 'food-spur',  rect: R(878, 654, 900, 772) },  // down to the cafeteria
-  { id: 'se-recess',  rect: R(976, 654, 1000, 772) }, // 402-420 recess
-  { id: 'ck200-entry',rect: R(746, 570, 768, 606) },  // vestibule into Castner Knott 200
+  { ceilH: 4.8, id: 'jcp-spur',   rect: R(1004, 452, 1038, 606) },// N-S up to JCPenney
+  { ceilH: 4.4, id: 'sw-pocket',  rect: R(578, 654, 604, 745) },  // 472-488 pocket
+  { ceilH: 4.4, id: 'south-court',rect: R(780, 654, 806, 772) },  // down to Revco / AmSouth
+  { ceilH: 4.4, id: 'food-spur',  rect: R(878, 654, 900, 772) },  // down to the cafeteria
+  { ceilH: 4.4, id: 'se-recess',  rect: R(976, 654, 1000, 772) }, // 402-420 recess
+  { ceilH: 4.4, id: 'ck200-entry',rect: R(746, 570, 768, 606) },  // vestibule into Castner Knott 200
 ]
 
 // --- Inline bays ----------------------------------------------------------

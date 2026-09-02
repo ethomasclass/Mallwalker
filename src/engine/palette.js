@@ -60,6 +60,24 @@ const HEX = {
   kioskTop:       0x4F4A46,
   carousel:       0xC9435A,
 
+  // --- Interior fittings --------------------------------------------------
+  ceilingGrid:    0xD7D2C6,
+  troffer:        0xFDFBF0,
+  runnerRed:      0x8E3742,
+  runnerDash:     0xE6E0D2,
+  rideMat:        0x27272B,
+  caseFrame:      0x6B5B4A,
+  rackMetal:      0xA9A7A1,
+  mannequin:      0xD9CFC0,
+  shelfWhite:     0xE4DED2,
+  shelfBack:      0xCFC8BA,
+  bannerWhite:    0xF2EEE4,
+  saleRed:        0xC0212F,
+  saleYellow:     0xF0C63C,
+  counterTop:     0x4C4A46,
+  chairBlack:     0x2B2A2E,
+  mirror:         0xC6D2D4,
+
   // --- Storefronts --------------------------------------------------------
   // Approximate house colours for the chains the 1996 directory lists. These
   // are voxel-art approximations for recognition at a glance, not logo art.
