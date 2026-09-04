@@ -6,7 +6,7 @@
 // was cut on purpose — and the building has no leaks by construction.
 
 import { C } from '../engine/palette.js'
-import { signInk, storefront } from './tenants.js'
+import { ANCHOR_SIGNS, signInk, storefront } from './tenants.js'
 import { ACCENTS, DEPARTMENTS, FLOORS } from './anchors.js'
 import { VOXEL, WALL } from './config.js'
 import {
@@ -184,6 +184,14 @@ function carveShop(brush, b, signs) {
   const pier2 = C[sf.pilaster ?? 'neutralPier']
   dbox(brush, g, g.a0, o0, -0.02, WALL, 0, HEAD + SIGN_H, pier2)
   dbox(brush, g, o1, g.a1, -0.02, WALL, 0, HEAD + SIGN_H, pier2)
+  if (sf.pierDots) {
+    for (const [p0, p1] of [[g.a0, o0], [o1, g.a1]]) {
+      const at = (p0 + p1) / 2
+      for (let y = 0.9; y < HEAD + SIGN_H - 0.3; y += 0.8) {
+        dbox(brush, g, at - 0.125, at + 0.125, -0.03, 0.02, y, y + 0.25, C[sf.pierDots])
+      }
+    }
+  }
   if (sf.confetti) {
     let cs = b.id * 31 + 7
     const rnd = () => ((cs = (cs * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff)
@@ -249,8 +257,10 @@ function carveShop(brush, b, signs) {
   }
 
   if (b.name && !sf.noSign) {
-    signs.push(sign(b.name, g, (o0 + o1) / 2, HEAD + SIGN_H / 2, -0.06,
-      Math.min(o1 - o0 - 0.4, 13), sf.fascia))
+    const sg = sign(b.name, g, (o0 + o1) / 2, HEAD + SIGN_H / 2, -0.06,
+      Math.min(o1 - o0 - 0.4, 13), sf.fascia)
+    if (sf.ink) sg.ink = sf.ink
+    signs.push(sg)
   }
 
   if (b.name && !sf.noBlade && span > 5) {
@@ -318,10 +328,20 @@ function closure(brush, g, sf, o0, o1, accent, fascia) {
       break
     }
     case 'counter': {
-      // Food service: counter across the frontage, open above it.
+      // Food service: counter across the frontage with a glass sneeze guard,
+      // and backlit menu boards on the wall behind the line.
       dbox(brush, g, o0, o1, d0 - 0.35, d1 + 0.1, 0, sf.sill, accent)
       dbox(brush, g, o0, o1, d0 - 0.4, d1 + 0.15, sf.sill, sf.sill + 0.12, C.counterTile)
-      dbox(brush, g, o0, o1, d1 + 1.4, d1 + 1.7, 1.9, HEAD, fascia)   // menu board
+      dbox(brush, g, o0 + 0.2, o1 - 0.2, d0 - 0.2, d0 - 0.05, sf.sill + 0.12, sf.sill + 0.62, C.storefrontGlass)
+      for (let at = o0 + 0.2; at < o1 - 0.3; at += 1.4) {
+        dbox(brush, g, at, at + 0.06, d0 - 0.22, d0 - 0.03, sf.sill + 0.12, sf.sill + 0.66, C.chrome)
+      }
+      const boards = Math.max(1, Math.floor((o1 - o0) / 1.5))
+      for (let i = 0; i < boards; i++) {
+        const at = o0 + 0.3 + ((o1 - o0 - 0.6) * i) / boards
+        dbox(brush, g, at, at + 1.2, d1 + 1.4, d1 + 1.6, 2.0, 2.75, C.backlit)
+        dbox(brush, g, at, at + 1.2, d1 + 1.38, d1 + 1.42, 2.55, 2.75, fascia)
+      }
       break
     }
     case 'service': {
@@ -603,8 +623,11 @@ function carveAnchor(brush, a, signs) {
     E: { horiz: false, a0: mAt(e) - w, a1: mAt(e) + w, mall: r.x1, dir: -1, out: +1 },
     W: { horiz: false, a0: mAt(e) - w, a1: mAt(e) + w, mall: r.x0, dir: +1, out: -1 },
   }[e.face]
-  dbox(brush, sg, sg.a0, sg.a1, 0, t, HEAD + 0.6, HEAD + 0.6 + SIGN_H + 0.3, C.signBoard)
-  signs.push(sign(a.name.toUpperCase(), sg, (sg.a0 + sg.a1) / 2, HEAD + 1.2, -0.06, 13, 'signBoard'))
+  const as = ANCHOR_SIGNS[a.id] ?? { fascia: 'signBoard', ink: '#f6f2e8', text: a.name.toUpperCase() }
+  dbox(brush, sg, sg.a0, sg.a1, 0, t, HEAD + 0.6, HEAD + 0.6 + SIGN_H + 0.3, C[as.fascia])
+  const asg = sign(as.text, sg, (sg.a0 + sg.a1) / 2, HEAD + 1.2, -0.06, 13, as.fascia)
+  asg.ink = as.ink; asg.serif = as.serif; asg.tall = true
+  signs.push(asg)
 
   fitOutAnchor(brush, a, signs)
 

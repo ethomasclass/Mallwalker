@@ -14,6 +14,8 @@ import { drawDirectory, markYouAreHere } from './game/directoryMap.js'
 import { MallAudio } from './game/audio.js'
 import { SEASON_LABEL } from './game/season.js'
 import { LIGHT, TIME } from './game/timeOfDay.js'
+import { Crowd } from './game/npc.js'
+import { mx, mz } from './game/plan.js'
 
 // --- Scene ----------------------------------------------------------------
 
@@ -84,6 +86,18 @@ requestAnimationFrame(() => {
   signs.forEach(addSign)
   boards.forEach(addDirectoryBoard)
 
+  // The people. Fixed ones stand where their job puts them: the Foot Locker
+  // "Striper" at the door of 416, the clerk beside Customer Service.
+  const solidAt = (x, y, z) => world.isSolid(Math.floor(x / VOXEL), Math.floor(y / VOXEL), Math.floor(z / VOXEL))
+  crowd = new Crowd({
+    scene, light, corridors: CORRIDORS, count: 26,
+    avoid: (x, z) => solidAt(x, 0.3, z) || solidAt(x, 1.0, z),
+    fixed: [
+      { role: 'striper', x: mx(1018) - 1.0, z: (mz(654) + mz(736)) / 2, yaw: -Math.PI / 2 },
+      { role: 'clerk',   x: mx(846) + 2.1,  z: mz(630),                 yaw: Math.PI / 2 },
+    ],
+  })
+
   loading.textContent =
     `${stats.tris.toLocaleString()} triangles · ${stats.meshes} sectors · ` +
     `built ${Math.round(tBuild)} ms · lit ${Math.round(tLight)} ms · meshed ${Math.round(tMesh)} ms`
@@ -124,7 +138,9 @@ function meshWorld(light) {
 function addSign(s) {
   const pad = 28
   const probe = document.createElement('canvas').getContext('2d')
-  const font = `600 72px "Helvetica Neue", Helvetica, Arial, sans-serif`
+  const font = s.serif
+    ? `700 72px "Cormorant Garamond", "Hoefler Text", Georgia, serif`
+    : `600 72px "Helvetica Neue", Helvetica, Arial, sans-serif`
   probe.font = font
   const tw = Math.ceil(probe.measureText(s.text).width)
 
@@ -144,7 +160,7 @@ function addSign(s) {
   texture.anisotropy = 4
 
   const ratio = canvas.width / canvas.height
-  let h = s.blade ? 0.3 : 0.62
+  let h = s.blade ? 0.3 : s.tall ? 0.95 : 0.62
   let w = h * ratio
   if (w > s.width) { w = s.width; h = w / ratio }
 
@@ -217,6 +233,9 @@ const readoutZone = document.getElementById('readout-zone')
 const readoutStore = document.getElementById('readout-store')
 let lastZone = ''
 let lastStep = 0
+let crowd = null
+let facing = null
+let speechTimer = 0
 
 // --- Loop -----------------------------------------------------------------
 
@@ -272,6 +291,28 @@ muteBtn.addEventListener('pointerdown', (e) => { e.stopPropagation(); setMuted(!
 document.body.appendChild(muteBtn)
 addEventListener('keydown', (e) => { if (e.code === 'KeyM') setMuted(!muted) })
 
+// --- Talking to people -----------------------------------------------------
+const prompt = document.createElement('div')
+prompt.id = 'talk-prompt'
+document.body.appendChild(prompt)
+const speech = document.createElement('div')
+speech.id = 'speech'
+document.body.appendChild(speech)
+const talkBtn = document.createElement('button')
+talkBtn.id = 'btn-talk'
+talkBtn.textContent = 'TALK'
+document.body.appendChild(talkBtn)
+
+function talk() {
+  if (!facing || !crowd) return
+  const { name, line } = crowd.talk(facing)
+  speech.innerHTML = `<b>${name}</b>${line}`
+  speech.classList.add('on')
+  speechTimer = 6
+}
+addEventListener('keydown', (e) => { if (e.code === 'KeyE' && walking) talk() })
+talkBtn.addEventListener('pointerdown', (e) => { e.stopPropagation(); talk() })
+
 const pause = document.createElement('button')
 pause.id = 'btn-pause'
 pause.textContent = 'II'
@@ -314,6 +355,16 @@ renderer.setAnimationLoop(() => {
 
   const here = locate(player.pos.x, player.pos.z)
 
+  if (crowd) {
+    crowd.update(dt, player.pos)
+    facing = walking ? crowd.facing(player.pos, player.yaw) : null
+    const show = !!facing
+    prompt.textContent = show ? (TOUCH ? `Talk to ${facing.name}` : `E \u00b7 Talk to ${facing.name}`) : ''
+    prompt.classList.toggle('on', show)
+    talkBtn.classList.toggle('on', show && TOUCH)
+    if (speechTimer > 0) { speechTimer -= dt; if (speechTimer <= 0) speech.classList.remove('on') }
+  }
+
   if (walking) {
     // Bigger rooms get a longer tail; a shop interior is nearly dry.
     const openness = here.zone === 'Center Court' ? 1
@@ -338,4 +389,4 @@ renderer.setAnimationLoop(() => {
 })
 
 // Handy while tuning the plan.
-window.mall = { world, player, scene, locate, audio }
+window.mall = { world, player, scene, locate, audio, get crowd() { return crowd } }

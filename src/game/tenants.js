@@ -50,10 +50,11 @@ const T = {
   148: ['window',  'apparelPlum',    'merchWarm'],      // AcScents
   150: ['counter', 'cafeteriaMaroon','jewelryGold'],    // Bourbon Street Candy
 
-  // RadioShack: black fascia, and the red back wall you could see from across
+  // RadioShack (one word since the 1995 logo): charcoal fascia, stone piers
+  // with dark accent squares, and the red back wall you could see from across
   // the concourse.
   152: ['full',    'musicBlack',     'electronicsGrey',
-        { interior: 'electronicsRed' }],
+        { interior: 'electronicsRed', pilaster: 'neutralPier', pierDots: 'musicBlack' }],
 
   // KayBee: blue fascia, red letters, confetti on the piers, sale banners
   // strung across the ceiling and stock stacked into the opening.
@@ -62,7 +63,8 @@ const T = {
 
   158: ['window',  'apparelPlum',    'jewelryGold'],    // Lane Bryant
   162: ['window',  'jewelryGold',    'musicBlack'],     // Lynn's Hallmark
-  164: ['window',  'musicBlack',     'musicPurple'],    // Camelot
+  // Camelot's wordmark sat on a warm wood fascia, not a black one.
+  164: ['window',  'woodFront',      'musicPurple', { interior: 'musicBlack' }],
 
   // Bath & Body Works: white shopfront under a hunter-green striped awning.
   166: ['glass',   'bathWhite',      'bathGreen',
@@ -74,9 +76,10 @@ const T = {
   212: ['window',  'nutritionNavy',  'nutritionGold'],  // General Nutrition
   214: ['glass',   'apparelNavy',    'athleticStripe'], // Hibbett
 
-  // Claire's: hot pink, wide open front, walls of accessories.
-  220: ['open',    'clairePink',     'jewelryGold',
-        { pilaster: 'clairePink', interior: 'clairePink' }],
+  // Claire's: white fascia with the purple wordmark, purple piers, a wide open
+  // front and walls of accessories.
+  220: ['open',    'bathWhite',      'clairePink',
+        { pilaster: 'musicPurple', interior: 'clairePink', ink: '#5b3e8e' }],
 
   222: ['salon',   'salonMauve',     'jewelryGold'],    // Nail Studio
   304: ['service', 'apparelNavy',    'counterTile'],    // Superior Alterations
@@ -105,9 +108,10 @@ const T = {
   440: ['counter', 'pizzaRed',       'jewelryGold'],    // Chongwah Express
   442: ['window',  'cafeteriaMaroon','counterTrim'],    // Morrison's
 
-  // Revco became CVS in the 1997 buyout: red fascia, wide glass, blue trim.
-  450: ['glass',   'cvsRed',         'drugBlue',
-        { interior: 'shelfWhite' }],
+  // Revco became CVS in the 1997 buyout. The "CVS/pharmacy" identity was a
+  // red awning with white lettering over wide glass.
+  450: ['glass',   'cvsRed',         'shelfWhite',
+        { interior: 'shelfWhite', awning: true }],
 
   454: ['counter', 'accessoryPink',  'counterTile'],    // Snack Express
   455: ['glass',   'shoeOrange',     'apparelNavy'],    // Footquarters
@@ -131,6 +135,17 @@ const VACANT = ['vacant', 'neutralPier', 'papered', undefined]
 export function storefront(bay) {
   const [style, fascia, accent, opts] = T[bay.id] ?? VACANT
   return { ...STYLES[style], name: style, fascia, accent, ...opts }
+}
+
+// Anchor entrance signage: each chain's own wordmark treatment, from their
+// logos of the period — Castner Knott's navy serif caps, Parisian's black
+// serif, the JCPenney and Sears sans wordmarks.
+export const ANCHOR_SIGNS = {
+  100: { fascia: 'searsBlue',   ink: '#f6f2e8', serif: false, text: 'SEARS' },
+  200: { fascia: 'jewelryNavy', ink: '#f6f2e8', serif: true,  text: 'CASTNER KNOTT' },
+  300: { fascia: 'musicBlack',  ink: '#f6f2e8', serif: false, text: 'JCPenney' },
+  400: { fascia: 'jewelryNavy', ink: '#f6f2e8', serif: true,  text: 'CASTNER KNOTT' },
+  500: { fascia: 'musicBlack',  ink: '#f6f2e8', serif: true,  text: 'Parisian' },
 }
 
 // Fascias this dark want light lettering; the pale ones want dark.

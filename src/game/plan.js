@@ -58,8 +58,10 @@ export const TENANTS = {
   142: 'MasterCuts', 144: 'University Collectibles',
   148: 'AcScents', 150: 'Bourbon Street Candy Co.',
 
-  152: 'Radio Shack', 154: 'KayBee Toys', 158: 'Lane Bryant',
-  162: "Lynn's Hallmark", 164: 'Camelot',
+  // Signs read as the chains wrote them by 2000: RadioShack went camel-case
+  // in 1995, Kay-Bee became "KB Toys" in 1998.
+  152: 'RadioShack', 154: 'KB Toys', 158: 'Lane Bryant',
+  162: "Lynn's Hallmark", 164: 'Camelot Music',
   166: 'Bath & Body Works',
 
   202: 'Eyemaster', 206: null, 208: 'Great American Cookie Co.',

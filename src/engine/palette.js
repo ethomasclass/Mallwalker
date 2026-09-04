@@ -71,6 +71,8 @@ const HEX = {
   vsPink:         0xE8A0B8,
   vsCream:        0xF6EFE6,
 
+  searsBlue:      0x1B3F8F,
+
   // --- Entrances ----------------------------------------------------------
   daylight:       0xF2F6FF,
   doorGlass:      0xC4DCE6,

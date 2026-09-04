@@ -98,6 +98,28 @@ the court skylight, the time of day reads almost entirely as how much light
 comes through those two openings — at night the mall is lit only by its own
 fixtures.
 
+**There are people.** `src/game/npc.js` puts twenty-six walkers on the
+corridor graph — retirees doing laps in windbreakers, teens, shoppers with
+bags, kids, a security guard on his beat — plus two who stand where their job
+puts them: the Foot Locker "Striper" in his referee shirt at the door of 416,
+and the clerk beside Customer Service. They travel between random
+destinations in lanes off the centre line, sidestep the fixtures, stop rather
+than walk through you, and are shaded from the same baked light grid as the
+building. Get within a few metres, look at one, and press **E** (or tap TALK)
+— each has a few lines, and most of them are about the mall.
+
+The corridor graph is built from the same corridor rectangles the building
+is carved from, so it can never disagree with the walkable space. Corridors
+that meet almost always *abut* rather than overlap — the wing ends on the
+exact line where the concourse begins — which is worth knowing before writing
+an overlap test.
+
+**Signs read as the chains wrote them in 2000**, which is not always how the
+directory's typesetter wrote them: RadioShack went camel-case in 1995, Kay-Bee
+became "KB Toys" in 1998, and the anchors carry their own wordmark treatments
+— Castner Knott's navy serif capitals, Parisian's black serif, the Sears and
+JCPenney sans wordmarks.
+
 **Sound is synthesised**, so the whole mall still ships as one file: an HVAC
 bed, the fountain when you are near it, muzak leaking out of Camelot, and
 footsteps in a room whose reverb opens up as the ceiling does. **M** mutes.
@@ -137,6 +159,16 @@ The concourse floor is laid as one-metre tiles with the grout drawn. It is
 tempting to leave it as a flat wash — greedy meshing collapses it to almost
 nothing — but without the grid the floor reads as grey concrete rather than
 tile, which is most of what you look at while walking.
+
+### Where the sources disagree
+
+The 2000 brochure still lists both anchors as Castner Knott, but Castner
+Knott was sold to Dillard's in the 1998 Mercantile Stores buyout, and the
+brochure lists Camelot at 164 although Camelot had been folded into FYE in
+late 1998. Directories lag their tenants; the model follows the directory,
+since it is the only source that is specifically *this* mall, and notes the
+lag here. Swap the anchor signs to Dillard's if you'd rather follow the
+corporate record.
 
 ### Where the model departs from the map
 
